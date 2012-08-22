@@ -1,0 +1,120 @@
+CRAZY HAPPY JOY TIME v0.1
+
+                     ,~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~,
+                    (        _____        _   _ __       )
+                     )         /         //__ \/ /      (
+                    (         /  /\__ __///_/ / /        )
+                     )     __/__/   //__//__//_/_\      (
+                    (                                    )
+                     ~~~~~                          ~~~~~
+                     ~~~~  1. Information            ~~~~
+                     ~~~                              ~~~
+                     ~~   2. Changes                   ~~
+                     ~                                  ~
+                    {    3. How to play                  }
+                     )     a. Gameplay elements         (
+                    (      b. Movement, jumping          )
+                     )     c. Attacking                 (
+                    (                                    )
+                     )   4. Enemies                     (
+                    {                                    }
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ÚÄ¿
+³1³
+ÀÄÁ¿ INFORMATION ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+This game, for me, was an exercise in frustation. I wanted
+to make a game in BATCH that was so impossible within the
+limitations of the language, simply for the challenge. And
+yeah, it does make me feel cool that I did it.
+
+ÚÄ¿
+³2³
+ÀÄÁ¿ CHANGES ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+   ÀÄÄÄÄÄÄÄÄÄÙ
+0.1 Initial release
+     * Map display and scrolling
+     * Character movement, jumping, and falling
+     * Enemy AI system (Really, covers any scriptable object)
+     * Tile solidity (0:pass, 1:solid, 2:over, 3:fall-through)
+     * Saving/Loading
+     * Win the level/game
+     * Screens: title, char select, and win/credits
+
+ÚÄ¿
+³3³
+ÀÄÁ¿ HOW TO PLAY ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+   ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÙ                                        ¿                   ³
+                                                          ³ Gameplay elements ³
+                                                          ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+This is a basic platformer. Move, jump, interact.                             ³
+Evade or destory all the enemies and make your way to the exit on each level. ³
+                                                          ¿                   ³
+ ÚÄÄÄÄÄÄÄÄ¿                                               ³ Movement, jumping ³
+ ³Controls³                                               ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+ ÃÄÄÄÂÄÄÄÄÁÄÄÄÄÄÄÄÄÄ¿                                                         ³
+ ³ a ³ Move left    ³                                                         ³
+ ³ d ³ Move right   ³                                                         ³
+ ³ w ³ Jump         ³                                                         ³
+ ³ s ³ Drop through ³                                                         ³
+ ³ q ³ Quit         ³                                                         ³
+ ³ o ³ Save         ³                                                         ³
+ ³ p ³ Pause        ³                                                         ³
+ ³ n ³ Do nothing   ³                                                         ³
+ ÀÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ                                     ¿                   ³
+                                                          ³     Attacking     ³
+                                                          ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+For weak enemies, jumping on their heads will suffice.                        ³
+Later, weapons may be required.                                               ³
+                                                                              ³
+                                                                            ÄÄÙ
+
+ÚÄ¿
+³5³
+ÀÄÁ¿ ENEMIES ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+   ÀÄÄÄÄÄÄÄÄÄÙ                                            ¿                   ³
+                                                          ³    Hover Bopin    ³
+                                                          ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+                    ÚÄÄÄÄÄÄÄÄ¿    ÚÄÄÄÄÄÄÄÄ¿    ÚÄÄÄÄÄÄÄÄ¿                    ³
+                    ³        ³    ³        ³    ³        ³                    ³
+                    ³       ³    ³       ³    ³       ³                    ³
+                    ³        ³ -> ³        ³ .. ³        ³                    ³
+                    ³     å  ³    ³    å   ³    ³ å      ³                    ³
+                    ³ßß   ßßß³    ³ßß   ßßß³    ³ßß   ßßß³                    ³
+                    ÀÄÄÄÄÄÄÄÄÙ    ÀÄÄÄÄÄÄÄÄÙ    ÀÄÄÄÄÄÄÄÄÙ                    ³
+                                                                              ³
+                                   + INFO +                                   ³
+The Hover Bopin, though it likes to stay close to the ground, can hover       ³
+effortlessly over gaps. However, it is extremely stupid and can only move to  ³
+the left, even if stopped by an object, it will unwaveringly push into it     ³
+until put out of its misery.                                                  ³
+                                                                              ³
+                                   + TECH +                                   ³
+Visage: å                                                                     ³
+Speed: 1                                                                      ³
+Jump: No                                                                      ³
+Thoughts: The grass is always greener to the left, always.                    ³
+Threat level: Minimal                                                         ³
+                                                                              ³
+                                                          ¿                   ³
+                                                          ³      Notical      ³
+                                                          ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+             ÚÄÄÄÄÄÄÄÄ¿    ÚÄÄÄÄÄÄÄÄ¿    ÚÄÄÄÄÄÄÄÄ¿    ÚÄÄÄÄÄÄÄÄ¿             ³
+             ³        ³    ³        ³    ³        ³    ³        ³             ³
+             ³    ©   ³ -> ³   ©    ³ -> ³ ª      ³ .. ³      ª ³             ³
+             ³        ³    ³        ³    ³        ³    ³        ³             ³
+             ÀÄÄÄÄÄÄÄÄÙ    ÀÄÄÄÄÄÄÄÄÙ    ÀÄÄÄÄÄÄÄÄÙ    ÀÄÄÄÄÄÄÄÄÙ             ³
+                                                                              ³
+                                   + INFO +                                   ³
+The Notical is a bird that flies back and forth in the air, typically out of  ³
+reach. They make for nice scenery.                                            ³
+                                                                              ³
+                                   + TECH +                                   ³
+Visage: ©                                                                     ³
+Speed: 1                                                                      ³
+Jump: No                                                                      ³
+Thoughts: [I can't think of anything wittier than its name]                   ³
+Threat level: None                                                            ³
+                                                                              ³
+                                                                            ÄÄÙ

@@ -1,0 +1,83 @@
+The largest gap one can jump on the same y is 3 spaces.
+The largest height one can jump is 2 spaces; both from one space away and from two.
+
+You can take screenshots by using Select All to copy out part or all of the text, paste in Notepad
+and save as Unicode. Or paste in Notepad++ and save as .nfo
+
+Level collision data:
+0: Unsolid
+1: Solid
+2: Above-hero
+3: Semi-solid (can walk on, but can duck/jump through)
+
+Enemy data is constructed as cXXXYYsvt...
+c = Char, the sprite for the enemy
+XXX = x coordinate (0-width)
+YY = y coordinate (0-22)
+s = State (see below)
+v = Variable
+t... = Thoughts.
+
+AI States desc:
+0: Facing left
+1: Facing right
+2: Hidden and facing left
+3: Hidden and facing right
+8: Exploding
+9: Squished
+
+AI thought desc:
+0: Stop/Null
+1: Continue direction
+2: Left
+3: Right
+4: Move toward hero (horizontally)
+5: Move away from hero(horizontally)
+6: Up
+7: Down/Fall
+8: Explode (Implies .)
+9: Squish (Implies .)
+D: Die (Implies .)
+B: Cause player to jump (bounce)
+F: Cause player to fall-through
+K: Kill player
+W: Win the level
+H: Hide self
+U: Unhide self
+C: Change sprite to the following value
+@: Face left
+#: Face right
+
+c: If in visible area
+l: If space to left is solid
+r: If space to right is solid
+d: If space below is solid
+u: If space above is solid
+g: If space to left is a gap
+h: If space to right is a gap
+L: If space to left is solid or a gap
+R: If space to right is solid or a gap
+x: If player jumped on
+X: If jumped on player
+_: If player and creature collided horizontally
+{: If facing left
+}: If facing right
+t: Skip to ; if the last if statement was false
+f: Skip to ; if the last if statement was true
+;: See above
+
+O: Boolean or
+A: Boolean and
+
+s: Set variable to the following value (two bytes)
+v: If the variable currently equals the following value (two bytes)
++: Increase variable by 1 (if the variable is 99, loop to 0)
+-: Decrease variable by 1 (if the variable is 0, loop to 99)
+.: Quit processing thoughts
+,: Quit and let char pass through
+
+~NEXT~
+Weapons
+Items and menu
+Art (Title, gameovers, win?)
+Level Editor
