@@ -1,13 +1,13 @@
 @echo off
 :: CRAZY HAPPY JOY TIME ::
-:: Platform game in BATCH by Wa (logicplace.com) ::
+:: Platform game in BATCH by Sapphire Becker (logicplace.com) ::
 :: Because I can ::
 setlocal EnableDelayedExpansion
+chcp 65001 >nul
 
 :::: Set up window ::::
 set title=CRAZY HAPPY JOY TIME
-title %title%
-color 07
+
 :::: Declare defaults ::::
 set Keys=nwasdqop
 :: Level stuff ::
@@ -18,7 +18,7 @@ set ScreenTop=0
 set KillPlayer=0
 :: Movementated ::
 (set Jumping=0) &&rem "0: Not jumping; 1: Fall through; 2: Falling; 3+ Jumping states"
-(set JumpMax=4) &&rem "Note that 4 is only two spaces high (3 and 4)"
+(set JumpMax=4) &&rem "Note that 4 is only two spaces high [3 and 4]"
 (set WantHorz=0) &&rem "0: Neither; 1: Left; 2: Right"
 
 :title
@@ -26,33 +26,33 @@ set KillPlayer=0
 cls
 title %title%
 color 07
-echo ษอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo บ                                                        1) Start New Game    บ
-echo บ                                                                             บ
+echo โ•”โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•—
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                        1) Start New Game    โ•‘
+echo โ•‘                                                                             โ•‘
 if exist "save.bat" (
-echo บ                                                        2^) Continue          บ
+echo โ•‘                                                        2^) Continue          โ•‘
 ) else (
-echo บ                                                                             บ
+echo โ•‘                                                                             โ•‘
 )
-echo บ                                                                             บ
-echo บ                                                        3) Level Editor      บ
-echo บ                                                                             บ
-echo บ                                                        4) Quit              บ
-echo บ                                                                             บ
-echo บ                                                                             บ
-echo ศอออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                        3) Level Editor      โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                        4) Quit              โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•‘                                                                             โ•‘
+echo โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•โ•
 choice /C 1234 /N
 set in=%ErrorLevel%
 if "%in%" == "1" goto startNew
@@ -65,14 +65,14 @@ if "%in%" == "4" goto quit
 cls
 echo CHOOSE A CHARACTER
 echo.
-echo 1)      2) 
-echo 3) ญ     4) 
+echo 1) โบ     2) โป
+echo 3) ยก     4) โ
 choice /C 1234 /N /M ? 
 set Avatar=%ErrorLevel%
-if "%Avatar%" == "1" set Avatar=
-if "%Avatar%" == "2" set Avatar=
-if "%Avatar%" == "3" set Avatar=ญ
-if "%Avatar%" == "4" set Avatar=
+if "%Avatar%" == "1" set Avatar=โบ
+if "%Avatar%" == "2" set Avatar=โป
+if "%Avatar%" == "3" set Avatar=ยก
+if "%Avatar%" == "4" set Avatar=โ
 :: Now we load level 0 ::
 call :loadLevel level0
 goto start
@@ -120,9 +120,9 @@ goto mainLoop
 	set time=300
 	cls
 	for /L %%i in (0,1,24) do echo.
-	call :slowFlood "                   You beat the last level Congratulations" %time%
+	call :slowFlood "                   You beat the last levelโ€ผ Congratulationsโ€ผ" %time%
 	for /L %%i in (0,1,2) do call :slowFlood "" %time%
-	call :slowFlood "                    Game programming by Wa (logicplace.com)" %time%
+	call :slowFlood "              Game programming by Sapphire Becker (logicplace.com)" %time%
 	call :slowFlood "" %time%
 	call :slowFlood " Level name                            Designers"
 	for %%i in (%PrevLevels%) do (
@@ -132,7 +132,7 @@ goto mainLoop
 		call :slowFlood " !LevelName:~0,37! !Authors:~0,40!" %time%
 	)
 	for /L %%i in (0,1,10) do call :slowFlood "" %time%
-	call :slowFlood "                             Thank you for playing" %time%
+	call :slowFlood "                             Thank you for playingโ€ผ" %time%
 	call :slowFlood "                Make your own levels and share them with friends." %time%
 	for /L %%i in (0,1,10) do call :slowFlood "" %time%
 	pause
@@ -156,10 +156,10 @@ goto title
 		if not "!enemy%%i_state:3=2!" == "2" (
 			if "!enemy%%i_state!" == "8" (
 				:: Exploding ::
-				call :draw "" !enemy%%i_x! !enemy%%i_y! col
+				call :draw "โผ" !enemy%%i_x! !enemy%%i_y! col
 			) else if "!enemy%%i_state!" == "9" (
 				:: Squished ::
-				call :draw "" !enemy%%i_x! !enemy%%i_y! col
+				call :draw "โ–ฌ" !enemy%%i_x! !enemy%%i_y! col
 			) else if not "!enemy%%i_state!" == "D" (
 				:: Regular ::
 				call :draw "!enemy%%i_avatar!" !enemy%%i_x! !enemy%%i_y! col
@@ -188,7 +188,7 @@ exit /B
 	if %TmpX% LSS 0 exit /B
 	if %TmpX% GTR 79 exit /B
 	if %TmpY% LSS 0 exit /B
-	if %TmpY% GTR 24 exit /B
+	if %TmpY% GTR 23 exit /B
 
 	:: Draw ::
 	set /A TmpX1=TmpX + 1
@@ -765,3 +765,6 @@ exit /B
 	choice /N /M "Are you sure you want to quit (Y/N)? "
 	if "%ErrorLevel%" == "1" goto title
 exit /B
+
+:quit
+exit /B 0
