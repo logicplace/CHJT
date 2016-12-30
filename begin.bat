@@ -102,7 +102,19 @@ goto mainLoop
 :mainLoop
 :: Game's main loop. Basically display, grab input, update AI ::
 	call :display
-	call :input
+	
+	:: Grab input and handle it ::
+	set WantHorz=0
+	choice /C %Keys% /N /D n /T 1 >nul
+	set action=%ErrorLevel%
+	if "%action%" == "2" call :playerJump
+	if "%action%" == "3" set WantHorz=1
+	if "%action%" == "4" call :playerDown
+	if "%action%" == "5" set WantHorz=2
+	if "%action%" == "6" goto :confirmQuit
+	if "%action%" == "7" call :save
+	if "%action%" == "8" pause
+	
 	call :step
 	:: Reload if player has died ::
 	if "%KillPlayer%" == "1" call :loadLevel "%CurrentLevel%"
@@ -193,20 +205,6 @@ exit /B
 	:: Draw ::
 	set /A TmpX1=TmpX + 1
 	set eline%TmpY%=!eline%TmpY%:~0,%TmpX%!%~1!eline%TmpY%:~%TmpX1%!
-exit /B
-
-:input
-	:: Grab input and handle it ::
-	set WantHorz=0
-	choice /C %Keys% /N /D n /T 1 >nul
-	set action=%ErrorLevel%
-	if "%action%" == "2" call :playerJump
-	if "%action%" == "3" set WantHorz=1
-	if "%action%" == "4" call :playerDown
-	if "%action%" == "5" set WantHorz=2
-	if "%action%" == "6" call :confirmQuit
-	if "%action%" == "7" call :save
-	if "%action%" == "8" pause
 exit /B
 
 :step
