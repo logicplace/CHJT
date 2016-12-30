@@ -151,7 +151,7 @@ goto title
 	call :draw "%Avatar%" %CharX% %CharY% col
 
 	:: Draw enemies to the screen ::
-	for /L %%i in (0,1,%enemys%) do (
+	for /L %%i in (1,1,%enemys%) do (
 		:: Only draw if not hidden ::
 		if not "!enemy%%i_state:3=2!" == "2" (
 			if "!enemy%%i_state!" == "8" (
@@ -272,7 +272,7 @@ exit /B
 	:step_moveOkay
 	:: Now we check if there's an enemy in that position ::
 	set CollidesWith=
-	for /L %%i in (0,1,%enemys%) do (
+	for /L %%i in (1,1,%enemys%) do (
 		if "!enemy%%i_x!,!enemy%%i_y!" == "%CheckX%,%CheckY%" set CollidesWith=%%i
 	)
 	if not "%CollidesWith%" == "" goto step_ai
@@ -295,7 +295,7 @@ exit /B
 	
 	:step_ai
 	set RemoveEnemies=
-	for /L %%i in (0,1,%enemys%) do (
+	for /L %%i in (1,1,%enemys%) do (
 		if "!enemy%%i_state:8=9!" == "9" (
 			set RemoveEnemies=%RemoveEnemies% %%i
 		) else if "!enemy%%i_state!" == "D" (
@@ -625,7 +625,7 @@ exit /B
 	(echo set Jumping=%Jumping%)>>save.bat
 	(echo set WantHorz=%WantHorz%)>>save.bat
 	(echo set enemys=%enemys%)>>save.bat
-	for /L %%i in (0,1,%enemys%) do (
+	for /L %%i in (1,1,%enemys%) do (
 		(echo set enemy%%i_avatar=!enemy%%i_avatar!)>>save.bat
 		(echo set enemy%%i_x=!enemy%%i_x!)>>save.bat
 		(echo set enemy%%i_y=!enemy%%i_y!)>>save.bat
@@ -689,7 +689,7 @@ exit /B
 	:: Parse enemies
 	if not "%2" == "load" (
 		set /A enemys-=1
-		for /L %%i in (0,1,!enemys!) do (
+		for /L %%i in (1,1,!enemys!) do (
 			set enemy%%i_avatar=!enemy%%i:~0,1!
 			:: Octal avoidance ::
 			set /A enemy%%i_x=1!enemy%%i:~1,3! - 1000
@@ -767,4 +767,3 @@ exit /B
 exit /B
 
 :quit
-exit /B 0
