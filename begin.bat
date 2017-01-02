@@ -1,3 +1,4 @@
+@BOM 2>nul
 @echo off
 :: CRAZY HAPPY JOY TIME ::
 :: Platform game in BATCH by Sapphire Becker (logicplace.com) ::
@@ -114,7 +115,7 @@ goto mainLoop
 	if "%action%" == "6" goto :confirmQuit
 	if "%action%" == "7" call :save
 	if "%action%" == "8" pause
-	
+
 	call :step
 	:: Reload if player has died ::
 	if "%KillPlayer%" == "1" call :loadLevel "%CurrentLevel%"
