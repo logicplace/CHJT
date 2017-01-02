@@ -140,8 +140,8 @@ goto mainLoop
 	call :slowFlood " Level name                            Designers"
 	for %%i in (%PrevLevels%) do (
 		call :loadLevel %%i win
-		(set LevelName=%LevelName%                                     )
-		(set Authors=%Authors%                                        )
+		(set LevelName=!LevelName!                                     )
+		(set Authors=!Authors!                                        )
 		call :slowFlood " !LevelName:~0,37! !Authors:~0,40!" %time%
 	)
 	for /L %%i in (0,1,10) do call :slowFlood "" %time%
@@ -654,7 +654,6 @@ exit /B
 		set WantHorz=0
 	)
 
-	call "%~1.bat" %2
 	if not "%2" == "win" (
 		if not "%LevelName%" == "" (
 			title %title% - %LevelName%
@@ -686,7 +685,7 @@ exit /B
 	)
 
 	:: Parse enemies
-	if not "%2" == "load" (
+	if "%2" == "" (
 		set /A enemys-=1
 		for /L %%i in (1,1,!enemys!) do (
 			set enemy%%i_avatar=!enemy%%i:~0,1!
@@ -695,43 +694,11 @@ exit /B
 			set /A enemy%%i_y=1!enemy%%i:~4,2! - 100
 			set enemy%%i_state=!enemy%%i:~6,1!
 			set enemy%%i_var=!enemy%%i:~7,1!
-			call :parseAI "!enemy%%i:~8!"
-			set enemy%%i_ai=!ResultAI!
+			set enemy%%i_ai=
+			for /F "tokens=* eol=" %%G in ('ai\split.bat "!enemy%%i:~8!"') do set enemy%%i_ai=!enemy%%i_ai! "%%G"
 		)
 	)
 exit /B 1
-
-:parseAI
-:: parseAI ai
-	set TmpAI=%~1
-	set TmpStart=0
-	set ResultAI=
-	set NoArg=0123456789BFKWHU@#clrdughLRxX_{}tf;OA+-.,
-	:: TypeArgs:                                                                   ::
-	::   Type: Arg = String, Num = Number                                          ::
-	::   Args: Sequences of numbers, each digit is the amount of bytes that arg is ::
-	set Arg1=C
-	set Num2=sv
-	:parseAI_loop
-		set TmpCommand=!TmpAI:~%TmpStart%,1!
-		if "%TmpCommand%" == "" goto parseAI_endLoop
-		set /A TmpStart+=1
-		if not "!Arg1:%TmpCommand%=!" == "%Arg1%" (
-			set TmpCommand=%TmpCommand% !TmpAI:~%TmpStart%,1!
-			set /A TmpStart+=1
-		) else if not "!Num2:%TmpCommand%=!" == "%Num2%" (
-			set TmpCommand=%TmpCommand% !TmpAI:~%TmpStart%,2!
-			if "!TmpCommand:~2,1!" == "0" set TmpCommand=!TmpCommand:~0,1! !TmpCommand:~3,1!
-			set /A TmpStart+=2
-		) else if "!NoArg:%TmpCommand%=!" == "%NoArg%" (
-			echo Error parsing AI, unknown command %TmpCommand%
-			exit /B 1
-		)
-		set ResultAI=%ResultAI% "%TmpCommand%"
-	goto parseAI_loop
-	:parseAI_endLoop
-	set ResultAI=%ResultAI:~1%
-exit /B
 
 ::::::::: Convenience functions :::::::::
 :bool
