@@ -1,3 +1,4 @@
+@BOM 2>nul
 @echo off
 :: CRAZY HAPPY JOY TIME ::
 :: Level & AI editor ::
@@ -17,6 +18,7 @@ set CursorX=0
 set CursorY=0
 rem set CursorBlink=/D 9 /T 1
 set CursorBlink=
+set AITabStart=1
 
 :::: Declare tilemap ::::
 (set TileA0=☺) && (set CollA0=0)
@@ -179,6 +181,16 @@ set CursorBlink=
 (set TileP7=²) && (set CollP7=3)
 (set TileP8=■) && (set CollP8=1)
 
+:: DEBUG ::
+REM set test_name=Test AI
+REM set test_x=0
+REM set test_y=0
+REM set test_state=0
+REM set test_var=0
+REM set test_ai=ct0;f2;.
+REM call :editAI test
+:::::::::::
+
 :title
 :: Display menu, allowing users to select what to do ::
 cls
@@ -259,9 +271,8 @@ goto editLevel
     set CollInLitCase=0
 
     :: Input ::
-    set TSM=
     if not "%SuccessMessage%" == "" echo %SuccessMessage%
-    choice /C 9wasdhqrcnoxjtbp0123z /N %CursorBlink% >nul
+    choice /C 9wasdhqrcnoxjtbp0123zWS /CS /N %CursorBlink% >nul
 	set action=%ErrorLevel%
     :: q = Quit
     if %action% == 7 (
@@ -304,12 +315,12 @@ goto editLevel
         echo.   c - Show/hide  charas      c  copy "Name" "Name"    Make a copy of AI 1 here
         echo.   t - Toggle pane's tab      .  start                     Set start point here
         echo.   b - Show collision #s      /  goal                             Set goal here
-        echo.   p - Enter command  ─►         name                            Name the level
-        echo.                                 next                    Specify the next level
-        echo.   # Change  Collision #         color ##            Change level colours to ##
-        echo.   0 - Below   1 - Solid      +  widen #                   Widen the level by #
-        echo.   2 - Above  3-Fallthru      ^|  heighten #             Heighten the level by #
-        echo.                              l  line L/R/U/D Len   Draw len tiles in direction
+        echo.   WS - Scroll  AI  pane         name                            Name the level
+        echo.   p - Enter command  ─►         next                    Specify the next level
+        echo.                                 color ##            Change level colours to ##
+        echo.   # Change  Collision #      +  widen #                   Widen the level by #
+        echo.   0 - Below   1 - Solid      ^|  heighten #             Heighten the level by #
+        echo.   2 - Above  3-Fallthru      l  line L/R/U/D Len   Draw len tiles in direction
         echo.                                 Shorthand: ll, lr, lu, ld
         echo.
         echo.                                 The 1 forms are faster but both work the same‼
@@ -371,7 +382,6 @@ goto editLevel
     :: p = type text command
     :editLevelCase16
         set /P Command=:
-        echo on
         for /F "tokens=1*" %%i in ("%Command%") do (
             set cmd=%%i
             set arg1=%%~j
@@ -430,7 +440,6 @@ goto editLevel
         if "%cmd:LINEL=LL%" == "LL" call :writeLine L %arg1%
         if "%cmd:LINEU=LU%" == "LU" call :writeLine U %arg1%
         if "%cmd:LINED=LD%" == "LD" call :writeLine D %arg1%
-        @echo off
         exit /B
         
     :: 0123 = set collision value to
@@ -475,6 +484,18 @@ goto editLevel
 
         exit /B
 
+    :: WS - scroll tab (AI) pane
+    :editLevelCase22
+        if %AITabStart% GTR 1 set /A AITabStart-=1
+        set SuccessMessage=
+        exit /B
+
+    :editLevelCase23
+        set /A Tmp=enemys - 19
+        if %AITabStart% LSS %Tmp% set /A AITabStart+=1
+        set SuccessMessage=
+        exit /B
+
     :afterEditLevelCases
     if "%Cursor%" == "◘" (
         set Cursor=•
@@ -482,6 +503,155 @@ goto editLevel
         set Cursor=◘
     )
 goto editLevel
+
+:editAI
+::editAI Variable
+    :: Load AI into editor ::
+    set EditorI=%~1
+    set EditorName=!%~1_name!
+    set EditorX=!%~1_x!
+    set EditorY=!%~1_y!
+    set EditorState=!%~1_state!
+    set EditorVar=!%~1_var!
+
+    set EditorTop=1
+    set EditorCursor=1
+
+    set LastLine=1
+    for /F "tokens=* delims=" %%x in ('ai\decompile.bat "!%~1_ai!"') do (
+        set EditorLine!LastLine!=%%x
+        set /A LastLine+=1
+    )
+
+    :editAILoop
+    :: AI editor main loop ::
+    call :drawAI
+
+    :: Input ::
+    if not "%SuccessMessage%" == "" echo %SuccessMessage%
+    choice /C 9qhwsWSpjneradAD /CS /N %CursorBlink% >nul
+	set action=%ErrorLevel%
+    :: q = Quit
+    call :editAICase%action%
+    if %action% == 2 (
+        set SuccessMessage=
+        goto :confirmQuit
+    )
+    goto afterEditAICases
+
+    :editAICase0
+    :editAICase1
+    :editAICase2
+        exit /B
+
+    :: h - Help
+    :editAICase3
+        cls
+        echo.====================== Crazy Happy Joy Time - AI  Editor ======================
+        echo.   #   Command  Keys   #      1  #             p  Entry  Commands             #
+        echo.   ws - Move the  cursor      h  help                       Show this help file
+        echo.   WS - Scroll  viewport      q  quit                        Exit the AI editor
+        echo.   h - Help     q - Quit         center   Center the viewport around the cursor
+        echo.   a - Jump to view  top      a  top            Jump to the top of the viewport
+        echo.   d - Go to view bottom      d  bottom      Jump to the bottom of the viewport
+        echo.   A - Jump  to  line  1         home        Jump to the first line in the file
+        echo.   D - Jump to last line         end          Jump to the last line in the file
+        echo.   j - Jump to this line      j  jump LINE        Jump to the given line number
+        echo.   n - Insert  new  line      n  new [TEXT]    Insert a new line above this one
+        echo.   e - Copy + edit  line      e  copy        Copy the current line to clipboard
+        echo.   r - Replace this line      r  replace TEXT       Replace this line with text
+        echo.   p - Enter command  ─►      i  import [FILE]   Read AI from file, overwriting
+        echo.                              x  export [FILE]             Write out AI to file
+        echo.                              d  decompile CODE  Decompile code to current line
+        echo.                              c  compile                   Compile current line
+        echo.   
+        echo.                                 The 1 forms are faster but both work the same‼
+        echo.===============================================================================
+
+    :: ws - Scroll cursor ::
+    :editAICase4
+        if %EditorCursor% GTR 1 set /A EditorCursor-=1
+        set /A EditorCursorRelative=EditorCursor - EditorTop
+        if %EditorCursorRelative% LEQ 0 set EditorTop=%EditorCursor%
+        exit /B
+    :editAICase5
+        if %EditorCursor% LSS 999 set /A EditorCursor+=1
+        set /A EditorCursorRelative=EditorCursor - EditorTop
+        if %EditorCursorRelative% GEQ 23 set /A EditorTop=%EditorCursor% - 17
+        exit /B
+        
+    :: WS - Scroll screen but not cursor ::
+    :editAICase6
+        if %EditorTop% GTR 1 set /A EditorTop-=1
+        exit /B
+    :editAICase7
+        if %EditorTop% LSS 978 set /A EditorTop+=1
+        exit /B
+
+    :: p - Enter command ::
+    :editAICase8
+        set /P Command=:
+        for /F "tokens=1*" %%i in ("%Command%") do (
+            set cmd=%%i
+            set arg1=%%~j
+            set arg2=%%~k
+            set arg3=%%~l
+        )
+        call :upper cmd
+        if "%cmd:HELP=H%" == "H" goto editAICase3
+        if "%cmd:QUIT=Q%" == "Q" set action=2
+        if "%cmd%" == "CENTER" (
+            set /A EditorTop=EditorCursor - 11
+            if !EditorTop! LSS 1 set EditorTop=1
+        )
+        :: TODO: more
+        echo !EditorLine%EditorCursor%!| clip
+        exit /B
+
+    :: j - Jump to line ::
+    :editAICase9
+        set /P EditorTop=Line: 
+        if %EditorTop% LSS 1 set EditorTop=1
+        if %EditorTop% GTR %LastLine% set EditorTop=%LastLine%
+
+    :: n - insert New line ::
+    :editAICase10
+        :: Move all lines ahead ::
+        set /A j=LastLine+1
+        for /L %%i in (%LastLine%,-1,%EditorCursor%) do (
+            set EditorLine!j!=!EditorLine%%i!
+            set /A j-=1
+        )
+        set /A LastLine+=1
+        :: Insert a blank line ::
+        set EditorLine%j%= 
+    
+    :: er - Edit or Replace ::
+    :editAICase11
+        echo !EditorLine%EditorCursor%!| clip
+    :editAICase12
+        set /P EditorLine%EditorCursor%==
+    
+    :: ad - view top and bottom ::
+    :editAICase13
+        set EditorCursor=%EditorTop%
+        exit /B
+    :editAICase14
+        set /A EditorCursor=EditorTop + 22
+        exit /B
+    
+    :: AD - file top and bottom ::
+    :editAICase13
+        set EditorTop=1
+        set EditorCursor=1
+        exit /B
+    :editAICase14
+        set /A EditorTop=LastLine - 22
+        set EditorCursor=%LastLine%
+        exit /B
+    
+    :afterEditAICases
+goto editAILoop
 
 :drawHiddenPane
     set LeftOffset=0
@@ -569,7 +739,16 @@ exit /B
     set  eline0=╔══════════════╦
     set  eline1=║  Tiles  ►AI◄ ║
     set  eline2=║              ║
-    :: TODO: List available AI
+    set sline=2
+    set /A senemies=19 + %AITabStart%
+    if %enemys% LSS %senemies% set senemies=%enemys%
+    for /L %%i in (%AITabStart%,1,%senemies%) do (
+        set /A sline+=1
+        set eline!sline!=║ !enemy%%i_name:~0,12!            
+    )
+    for /L %%i in (3,1,%sline%) do (
+        set eline%%i=!eline%%i:~0,14! ║
+    )
     set eline22=╚══════════════╩
 exit /B
 
@@ -608,7 +787,7 @@ exit /B
     :finishDrawLevel
     cls
 	call :draw "%Cursor%" %CursorX% %CursorY% rel
-    for /L %%i in (0,1,22) do echo.!eline%%i!
+    for /L %%i in (0,1,22) do @echo.!eline%%i!
 exit /B
 
 :draw
@@ -634,6 +813,66 @@ exit /B
 	:: Draw ::
 	set /A TmpX1=TmpX + 1
 	set eline%TmpY%=!eline%TmpY%:~0,%TmpX%!%~1!eline%TmpY%:~%TmpX1%!
+exit /B
+
+:drawAI
+    set /A EditorBottom=EditorTop + 22
+    if %EditorBottom% GEQ 100 (set Pad=pad3
+    ) else set Pad=pad2
+
+    call :drawAIInfo
+    set OneBased=1
+    for /L %%i in (%EditorTop%,1,%EditorBottom%) do (
+        :: Pad the number appropriately ::
+        call :%Pad% LineNumber %%i
+
+        :: If the cursor is on this line, display it ::
+        if "%%i" == "%EditorCursor%" (set Cursor=»
+        ) else set Cursor= 
+
+        :: If this line isn't defined we should set a blank one ::
+        if %%i GEQ %LastLine% (
+            set EditorLine%%i= 
+            set /A LastLine+=1
+        )
+
+        set tline!OneBased!=!Cursor!!LineNumber!│ !EditorLine%%i!
+        set /A OneBased+=1
+    )
+
+    :: Draw the lines ::
+    cls
+    for /L %%i in (1,1,23) do @echo.!eline%%i!!tline%%i!
+exit /B
+
+:drawAIInfo
+    set  eline1=AI name:       ║
+    set  eline2= %EditorName:~0,14%              
+    set  eline2=%eline2:~0,15%║
+    set  eline3= %EditorName:~14,14%              
+    set  eline3=%eline3:~0,15%║
+    set  eline4=               ║
+    set  eline5=Initial...     ║
+    set  eline6= State: %EditorState%      ║
+    :: TODO: If initial variable width is increased this needs to use pad2
+    set  eline7= Var:   %EditorVar%      ║
+    set  eline8= Pos: [%EditorX%,%EditorY%]              
+    set  eline8=%eline8:~0,15%║
+    set  eline9=               ║
+    set eline10=               ║
+    set eline11= Commands:     ║
+    set eline12=  0123456789D  ║
+    set eline13=  BFKWHUC@#,.  ║
+    set eline14=               ║
+    set eline15= Conditionals: ║
+    set eline16=  clrdughLRxX  ║
+    set eline17=  _{} tf; OA   ║
+    set eline18=               ║
+    set eline19= Variable:     ║
+    set eline20=  s v + -      ║
+    set eline21=               ║
+    set eline22= Press h       ║
+    set eline23=      for help ║
 exit /B
 
 :moveCursor
@@ -910,6 +1149,22 @@ exit /B
         set %~1=0
         if not "%2" == "" set %2=%4
     )
+exit /B
+
+:pad2
+::pad2 Variable Number
+    if %2 LSS 10 (
+        set %1=0%2
+    ) else set %1=%2
+exit /B
+
+:pad3
+::pad3 Variable Number
+    if %2 LSS 10 (
+        set %1=00%2
+    ) else if %2 LSS 100 (
+        set %1=0%2
+    ) else set %1=%2
 exit /B
 
 :confirmQuit
