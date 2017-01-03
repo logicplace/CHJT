@@ -108,8 +108,5 @@ exit /B
 
 :start
 for /F "tokens=1,2 eol=" %%G in ('ai\split.bat "%~1"') do call :decompCommand "%%~G" "%%~H"
-if not "%Condition%" == "" (
-    if not "%Tabs%" == "" set Tabs=%Tabs:~2%
-    call :newline "}" 1
-)
+if not "%Condition%" == "" echo %Tabs%%Condition% {
 exit /B 0
