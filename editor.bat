@@ -409,16 +409,35 @@ goto editLevel
         if "%cmd:JUMP=J%" == "J" call :setCursor %arg1% %arg2%
         if "%cmd:TILE=Z%" == "Z" call :setCurrentTile %arg1% %arg2%
         if "%cmd:NEW=N%" == "N" call :aiAtCursor "%arg1%" %arg2% %arg3%
-        rem if "%cmd:EDIT=E%" == "E"
-        rem if "%cmd%" == "NE"
+        if "%cmd:EDIT=E%" == "E" call :openAI "%arg1" 
+        if "%cmd%" == "NE" (
+            call :aiAtCursor "%arg1%" %arg2% %arg3%
+            call :openAI "%arg1"
+        )
         if "%cmd:COPY=C%" == "C" call :copyAI2Cursor "%arg1%" "%arg2%"
-        rem if "%cmd%" == "CE"
+        if "%cmd%" == "CE" (
+            call :copyAI2Cursor "%arg1%" "%arg2%"
+            call :openAI "%arg2"
+        )
         if "%cmd:START=.%" == "." (
             call :getCursor
             set CharX=!TmpX!
             set CharY=!TmpY!
         )
-        rem if "%cmd:GOAL=/%" == "/"
+        if "%cmd:GOAL=/%" == "/" (
+            call :getVariableOf "Goalpost"
+            if ErrorLevel 0 (
+                :: Exists, move it ::
+                call :getCursor
+                set %enemy%_x=!TmpX!
+                set %enemy%_y=!TmpY!
+            ) else (
+                :: Does not exist, create it ::
+                call :aiAtCursor "Goalpost" 0 0
+                set %enemy%_avatar=▐
+                set %enemy%_ai=_tW;,
+            )
+        )
         if "%cmd%" == "NAME" (
             set LevelName=%arg1%
             set SuccessMessage=Set level name to "%arg1%"
@@ -509,6 +528,7 @@ goto editLevel
     :: Load AI into editor ::
     set EditorI=%~1
     set EditorName=!%~1_name!
+    set EditorAvatar=!%~1_avatar!
     set EditorX=!%~1_x!
     set EditorY=!%~1_y!
     set EditorState=!%~1_state!
@@ -529,7 +549,7 @@ goto editLevel
 
     :: Input ::
     if not "%SuccessMessage%" == "" echo %SuccessMessage%
-    choice /C 9qhwsWSpjneradAD /CS /N %CursorBlink% >nul
+    choice /C 9qhwsWSpjneradADktTo /CS /N %CursorBlink% >nul
 	set action=%ErrorLevel%
     :: q = Quit
     call :editAICase%action%
@@ -558,15 +578,137 @@ goto editLevel
         echo.   D - Jump to last line         end          Jump to the last line in the file
         echo.   j - Jump to this line      j  jump LINE        Jump to the given line number
         echo.   n - Insert  new  line      n  new [TEXT]    Insert a new line above this one
+        echo.   k - Delete this  line      k  delete #lines    Delete this + the next #lines
         echo.   e - Copy + edit  line      e  copy        Copy the current line to clipboard
         echo.   r - Replace this line      r  replace TEXT       Replace this line with text
-        echo.   p - Enter command  ─►      i  import [FILE]   Read AI from file, overwriting
-        echo.                              x  export [FILE]             Write out AI to file
-        echo.                              d  decompile CODE  Decompile code to current line
+        echo.   t - Tab this line  in      t  tab #lines       Tab in this + the next #lines
+        echo.   T - Tab back 1  depth      ^<  untab #lines   Tab back this + the next #lines
+        echo.   o - Save  AI  changes      i  import FILE     Read AI from file, overwriting
+        echo.   p - Enter command  ─►      x  export FILE               Write out AI to file
+        echo.                              v  decompile CODE  Decompile code to current line
+        echo.                                 di, do  Pure insert and overwrite decomp modes
         echo.                              c  compile                   Compile current line
+        echo.                                 name NAME             Set the name for this AI
+        echo.                                 sprite SPRITE           Set its initial sprite
+        echo.                                 state STATE              Set its initial state
+        echo.                                 var VALUE          Set its var's initial value
+        echo.                                 pos X Y               Set its initial position
         echo.   
         echo.                                 The 1 forms are faster but both work the same‼
+        echo.-------------------------------------------------------------------------------
+        pause
+        echo. In terms of the "Initital state" entry in the side bar, the values can be:
+        echo.   0 - Facing left and not hidden               8 - Exploding
+        echo.   1 - Facing right and not hidden              9 - Squished
+        echo.   2 - Facing left and hidden
+        echo.   3 - Facing right and hidden
+        echo.
+        echo.   The code you write here is run on every game step. Like normal code, it runs
+        echo. each command in order and can have conditionals that branch execution. It runs
+        echo. until reaching a stop command or the end of the "file".
+        echo.   There are three constructs in this language: commands, conditionals, and the
+        echo. variable assignment. 
+        echo.
+        echo.   ------------------------------- Commands --------------------------------
+        echo.   Some commands require arguments, some don't, but only one at most. Commands
+        echo. only need to be whitespace separated (that is, spaces or newlines) and 
+        echo. parenthesis around arguments are optional (you may use spaces). Thus, options
+        echo. include these, where #3 is the default:
+        echo.    1)   move(forward) move(forward) var++
+        echo.
+        echo.    2)   move forward move forward var++
+        echo.
+        echo.    3)   move(forward)                         4)   move forward
+        echo.         move(forward)                              move forward
+        echo.         var++                                      var++
+        echo. 
+        pause
+        echo.   ------------------------------ Conditionals -----------------------------
+        echo. Conditionals start with an "if" and are followed by a boolean condition then
+        echo. a code block. A code block can either of the following forms:
+        echo.        1)   if condition {                   2)   if condition
+        echo.               commands...                           commands..
+        echo.             }                                     end
+        echo. There is a special condition called "last" which refers to the value of the
+        echo. previous condition checked. This is only available as the first entry in a
+        echo. boolean condition set. These sets are any amount of conditionals joined by and
+        echo. or or. For instance:
+        echo.                      if facing == left and left.solid or ...
+        echo. Every entry in this sequence must be either positive or negative, you may not
+        echo. mix negative and positive. Negatives are expressed by using a ~, for example:
+        echo.                     if facing ~= left and ~left.solid or ...
+        echo. Additionally, you may use a word instead of == if it makes more sense to you:
+        echo.              if hero collides above    OR    if hero ~collides above
+        echo.
+        echo. Spaces around the ==, ~=, word or ~word is required, and there may not be any
+        echo. space between the two equal signs or the ~ and its = or word.
+        echo. 
+        pause
+        echo.   ------------------------------- Variables -------------------------------
+        echo.   There is only one variable per AI that you address with the term "var". You
+        echo. can check it as a conditional, set the variable, or increase/decrease the var
+        echo. directly. Variables can initially be set to 0~9 but can be set to 0~99.
+        echo.      Check the var:              Set the var:              Step the var:
+        echo.       if var == 0                  var = 0                Increase: var++
+        echo.       if var ~= 0            Spaces are optional          Decrease: var--
+        echo.
+        pause
+        echo.  General Commands                      Hero's commands
+        echo.   noop - No operation, do nothing       hero.jump() - Cause the player to jump
+        echo.   level.win() - Beat the level          hero.drop() - Make the hero fall-thru
+        echo.                                         hero.kill() - Kill the hero, end level
+        pause
+        echo.  AI's commands
+        echo.   move(Direction) - Make AI move one space in the given direction, tile
+        echo.                     solidity does not matter at all.
+        echo.     Direction can be any of the following:
+        echo.      left, right - Move in a specific direction and adjust the facing.
+        echo.      up, down - Move in a specific direction without altering the state.
+        echo.      forward - Move left or right, depending on the current facing.
+        echo.      towardHero - Move left or right toward the hero, adjusting the facing.
+        echo.      awayHero - Move left or right away from the hero, adjusting the facing.
+        echo.
+        echo.   face(Direction) - Make the AI face in the given direction.
+        echo.     Direction can be either of the following:
+        echo.      left, right - Face in this specific direction.
+        echo.
+        echo.   explode() - Kill the AI by making it explode. Changes sprite to ☼
+        echo.   squish()  - Kill the AI by making it squish. Changes sprite to ▬
+        echo.   die()     - Kill the AI outright.
+        echo.
+        echo.   hide()   - Hide the AI so the sprite is not drawn. hide(true) is an alias.
+        echo.   unhide() - Unhide the AI if it was hidden. hide(false) is an alias.
+        echo.
+        echo.   stop()     - Stop processing the AI.
+        echo.   stop(pass) - Stop processing the AI, but if the hero collided with it, let
+        echo.                the hero occupy the same space as the AI.
+        pause
+        echo.  Conditionals
+        echo.   visible - Whether or not the AI is currently visible. Control with un/hide
+        echo.
+        echo.   left.X, right.X - Whether or not the tile to the left or right is X.
+        echo.     X can be any of the following:
+        echo.      solid - If this tile is solid (solidity 1).
+        echo.      gap   - If the tile below this tile is not solid (solidity 0).
+        echo.      space - If this tile is solid or gap.
+        echo.   above.X, below.X - Whether or not the tile above or below the AI is X.
+        echo.     X can only be solid, currently, with the same meaning as above.
+        echo.
+        echo.   facing == Direction - Check the direction the AI is facing.
+        echo.     Direction can either be left or right.
+        echo.
+        echo.   hero collides X - Check if the AI collided with the hero. When negating this
+        echo.                     it can mean either that there was no collisions or it was
+        echo.                     simply one of the other types of collisions.
+        echo.     X can be any of the following:
+        echo.      above - Hero landed on top of the AI, such as by jumping.
+        echo.      below - AI landed on top of the hero.
+        echo.      side  - Hero and AI collided horizontally.
+        echo.
+        echo.   last - Whether or not the previous condition was true.
         echo.===============================================================================
+        pause
+        exit /B
 
     :: ws - Scroll cursor ::
     :editAICase4
@@ -604,33 +746,165 @@ goto editLevel
             set /A EditorTop=EditorCursor - 11
             if !EditorTop! LSS 1 set EditorTop=1
         )
-        :: TODO: more
-        echo !EditorLine%EditorCursor%!| clip
+        if "%cmd:TOP=A%" == "A" goto editAICase13
+        if "%cmd:BOTTOM=D%" == "D" goto editAICase14
+        if "%cmd%" == "HOME" goto editAICase15
+        if "%cmd%" == "END" goto editAICase16
+        if "%cmd:JUMP=J%" == "J" (
+            set EditorCursor=%arg1%
+            goto jumpToLine
+        )
+        if "%cmd:NEW=N%" == "N" (
+            set NewLine=%arg1%
+            goto insertNewLine
+        )
+        if "%cmd:COPY=E%" == "E" echo !EditorLine%EditorCursor%!| clip
+        if "%cmd:REPLACE=R%" == "R" set EditorLine%EditorCursor%=%arg1%
+        if "%cmd:IMPORT=I%" == "I" (
+            set LineNumber=1
+            choice /M "Are you sure you want to overwrite this"
+            if ErrorLevel 1 (
+                for /F "tokens=* delims=" %%i in (%arg1%) do (
+                    set EditorLine!LineNumber!=%%i
+                    set /a LineNumber+=1
+                )
+                for /L %%i in (!LineNumber!,1,%LastLine%) do set EditorLine%%i=
+                set /A LastLine=LineNumber - 1
+            )
+            set SuccessMessage=Imported from file "%arg1%"
+        )
+        if "%cmd:EXPORT=X%" == "X" (
+            set LineNumber=1
+            choice /M "Are you sure you want to overwrite %arg1%"
+            if ErrorLevel 1 (
+                (echo.!EditorLine1!)>!arg1!
+                for /L %%i in (2,1,%LastLine%) do (echo.!EditorLine%%i!)>>!arg1!
+            )
+            set SuccessMessage=Exported to file "%arg1%"
+        )
+        if "%cmd:DECOMPILE=V%" == "V" (
+            call :decomp
+            if !NumLines! == 1 (
+                set EditorLine%EditorCursor%=!NewLine1!
+            ) else if !NumLines! GTR 1 (
+                set NewLine=!NewLine1!
+                set /A NumLines-=1
+                call :insertNumLines
+                set /A NumLines+=1
+
+                set /A LineNumber=EditorCursor + 1
+                for /L %%i in (2,1,!NumLines!) do (
+                    set EditorLine!LineNumber!=!NewLine%%i!
+                    set /A LineNumber+=1
+                )
+                set SuccessMessage=Decompiled "%arg1%" into !NumLines! lines starting at line %EditorCursor%
+            ) else (
+                set SuccessMessage=Didn't decompile anything
+            )
+        )
+        if "%cmd:DI=VI%" == "VI" (
+            call :decomp
+            call :insertNumLines
+            set LineNumber=%EditorCursor%
+            for /L %%i in (1,1,!NumLines!) do (
+                set EditorLine!LineNumber!=!NewLine%%i!
+                set /A LineNumber+=1
+            )
+            set SuccessMessage=Decompiled "%arg1%" inserting !NumLines! lines before line %EditorCursor%            
+        )
+        if "%cmd:DO=VO%" == "VO" (
+            call :decomp
+            set LineNumber=%EditorCursor%
+            for /L %%i in (1,1,!NumLines!) do (
+                set EditorLine!LineNumber!=!NewLine%%i!
+                set /A LineNumber+=1
+            )
+            set SuccessMessage=Decompiled "%arg1%" overwriting !NumLines! lines starting at line %EditorCursor%            
+        )
+        if "%cmd:COMPILE=C%" == "C" (
+            for /F "tokens=1* eol=" %%i in ('ai\compile.bat "!EditorLine%EditorCursor%!"') do (
+                set SuccessMessage=Compilation: %%~j
+            )
+        )
+        if "%cmd:DELETE=K%" == "K" (
+            set NumLines=%arg1%
+            goto :deleteLines
+        )
+        if "%cmd:TAB=T%" == "T" (
+            set NumLines=%arg1%
+            goto :tabLines
+        )
+        if "%cmd:UNTAB=<%" == "<" (
+            set NumLines=%arg1%
+            goto :untabLines
+        )
+        if "%cmd%" == "NAME" (
+            set /P EditorName=New name: 
+            set SuccessMessage=Changed AI name
+        )
+        if "%cmd%" == "SPRITE" (
+            set /P EditorAvatar=New sprite: 
+            set SuccessMessage=Changed initial AI sprite
+        )
+        if "%cmd%" == "STATE" (
+            choice /C 0123456789 /N /M "New state: "
+            if ErrorLevel 0 exit /B
+            set /A EditorState=ErrorLevel - 1
+            set SuccessMessage=Changed initial AI state
+        )
+        if "%cmd%" == "VAR" (
+            choice /C 0123456789 /N /M "New var: "
+            if ErrorLevel 0 exit /B
+            set /A EditorState=ErrorLevel - 1
+            set SuccessMessage=Changed initial AI var
+        )
+        if "%cmd%" == "POS" (
+            set /P XY=X Y: 
+            for /F "tokens=1,2" %%i in ("!XY!") do (
+                set EditorX=%%i
+                set EditorY=%%j
+            )
+            set SuccessMessage=Changed initial AI position
+        )
         exit /B
 
     :: j - Jump to line ::
     :editAICase9
-        set /P EditorTop=Line: 
-        if %EditorTop% LSS 1 set EditorTop=1
-        if %EditorTop% GTR %LastLine% set EditorTop=%LastLine%
+        set /P EditorCursor=Line: 
+        :jumpToLine
+        if %EditorCursor% LSS 1 set EditorCursor=1
+        if %EditorCursor% GTR %LastLine% set EditorCursor=%LastLine%
+        if %EditorCursor% LSS %EditorTop% set EditorTop=%EditorCursor%
+        set /A EditorBottom=EditorTop + 22
+        if %EditorCursor% GTR %EditorBottom% set /A EditorTop=EditorCursor - 17
+        set SuccessMessage=
+        exit /B
 
     :: n - insert New line ::
     :editAICase10
+        set NewLine= 
+        :insertNewLine
         :: Move all lines ahead ::
-        set /A j=LastLine+1
+        set NumLines=1
+        :insertNumLines
+        set /A j=LastLine + NumLines
         for /L %%i in (%LastLine%,-1,%EditorCursor%) do (
             set EditorLine!j!=!EditorLine%%i!
             set /A j-=1
         )
-        set /A LastLine+=1
+        set /A LastLine+=NumLines
         :: Insert a blank line ::
-        set EditorLine%j%= 
+        set EditorLine%j%=!NewLine!
+        set SuccessMessage=Inserted %NumLines% new line(s) starting at %EditorCursor%.
+        exit /B
     
     :: er - Edit or Replace ::
     :editAICase11
         echo !EditorLine%EditorCursor%!| clip
     :editAICase12
-        set /P EditorLine%EditorCursor%==
+        set /P EditorLine%EditorCursor%=::
+        set SuccessMessage=
+        exit /B
     
     :: ad - view top and bottom ::
     :editAICase13
@@ -641,14 +915,73 @@ goto editLevel
         exit /B
     
     :: AD - file top and bottom ::
-    :editAICase13
+    :editAICase15
         set EditorTop=1
         set EditorCursor=1
         exit /B
-    :editAICase14
+    :editAICase16
         set /A EditorTop=LastLine - 22
         set EditorCursor=%LastLine%
         exit /B
+    
+    :: k - Delete this line ::
+    :editAICase17
+        set NumLines=1
+        :deleteLines
+        set j=%EditorCursor%
+        set /A StartLine=EditorCursor + NumLines
+        for /L %%i in (%StartLine%,1,%LastLine%) do (
+            set EditorLine!j!=!EditorLine%%i!
+            set /A j+=1
+        )
+        set /A LastLine-=NumLines
+        set SuccessMessage=Deleted %NumLines% lines
+        exit /B
+
+    :: t - Tab this line in ::
+    :editAICase18
+        set NumLines=1
+        :tabLines
+        set /A EndLine=EditorCursor + NumLines - 1
+        for /L %%i in (%EditorCursor%,1,%EndLine%) do (
+            set EditorLine%%i=  !EditorLine%%i!
+        )
+        set SuccessMessage=
+        exit /B
+
+    :: T - Tab this line back ::
+    :editAICase19
+        set NumLines=1
+        :untabLines
+        set /A EndLine=EditorCursor + NumLines - 1
+        for /L %%i in (%EditorCursor%,1,%EndLine%) do (
+            if "!EditorLine%%i:~0,2!" == "  " set EditorLine%%i=!EditorLine%%i:~2!
+        )
+        set SuccessMessage=
+        exit /B
+
+    :: o - Save AI ::
+    :editAICase20
+        set EditorAI=
+        for /L %%i in (1,1,%LastLine%) do for /F "tokens=1* eol=" %%j in ('ai\compile.bat "%%i"') do (
+            if not ErrorLevel 0 (
+                pause
+                set SuccessMessage=Error compiling AI on line %%i
+                exit /B
+            )
+            set EditorAI=!EditorAI!%%~k
+        )
+        set %EditorI%_ai=%EditorAI%
+        set SuccessMessage=Saved AI "%EditorName%"
+        exit /B
+
+    :decomp
+        set NumLines=0
+        for /F "tokens=* delims=" %%i in ('ai\decompile.bat "%arg1%"') do (
+            set /A NumLines+=1
+            set NewLine!NumLines!=%%i
+        )
+    exit /B
     
     :afterEditAICases
 goto editAILoop
@@ -749,6 +1082,8 @@ exit /B
     for /L %%i in (3,1,%sline%) do (
         set eline%%i=!eline%%i:~0,14! ║
     )
+    set /A sline+=1
+    for /L %%i in (%sline%,1,21) do set eline%%i=║              ║
     set eline22=╚══════════════╩
 exit /B
 
@@ -851,11 +1186,11 @@ exit /B
     set  eline2=%eline2:~0,15%║
     set  eline3= %EditorName:~14,14%              
     set  eline3=%eline3:~0,15%║
-    set  eline4=               ║
-    set  eline5=Initial...     ║
-    set  eline6= State: %EditorState%      ║
+    set  eline4=Initial...     ║
+    set  eline5= Sprite: %EditorAvatar%     ║
+    set  eline6= State:  %EditorState%     ║
     :: TODO: If initial variable width is increased this needs to use pad2
-    set  eline7= Var:   %EditorVar%      ║
+    set  eline7= Var:    %EditorVar%     ║
     set  eline8= Pos: [%EditorX%,%EditorY%]              
     set  eline8=%eline8:~0,15%║
     set  eline9=               ║
@@ -996,6 +1331,17 @@ exit /B
     call :aiAtCursor %2 !%from%_state! !%from%_var!
     set %enemy%_avatar=!%from%_avatar!
     set %enemy%_ai=!%from%_ai!
+exit /B 0
+
+:openAI
+::openAI "Name"
+    call :getVariableOf %1
+    if not ErrorLevel 0 (
+        set SuccessMessage=No AI named "%~1"
+        exit /B 1
+    )
+
+    call :editAI %enemy%
 exit /B 0
 
 :getVariableOf
@@ -1170,7 +1516,7 @@ exit /B
 :confirmQuit
 	:: Called function ::
 	choice /N /M "Are you sure you want to quit (Y/N)? "
-	if "%ErrorLevel%" == "1" goto title
+	if ErrorLevel 1 goto title
 exit /B
 
 :quit
