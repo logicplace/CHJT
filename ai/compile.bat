@@ -36,6 +36,7 @@ set Input=%Input:Z=z%
 
 set Compiled=
 set Open=0
+set ValidCommand= if noop move explode squish die hero.jump hero.drop hero.kill level.win hide unhide sprite face stop var++ var-- var } end 
 
 call :crunchSpace
 if not "%Input:~0,3%" == "if " goto :command
@@ -236,6 +237,10 @@ exit /B 1
 :argument
     set Parent=%Word%
     call :crunchWord
+    if not "!ValidCommand: %Word% =!" == "%ValidCommand%" (
+        set Input=%Word% !Input!
+        set Word=
+    )
     for %%i in (%*) do for /F "tokens=1,2 delims==" %%j in (%%i) do (
         if "%Word%%%k" == "" (
             set Command=%%j
