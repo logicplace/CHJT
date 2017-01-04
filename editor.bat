@@ -256,9 +256,10 @@ if not "%pane%" == "" (
     set ExportFileName=
     goto editLevel
 )
-for /L %%i (1,1,%enemys%) do (
+for /L %%i in (1,1,%enemys%) do (
     call :parseAI enemy%%i
 )
+set pane=Tile
 set ProjectFileName=
 set ExportFileName=%FileName%
 goto editLevel
@@ -1376,6 +1377,8 @@ exit /B 1
     set %1_state=!%1:~6,1!
     set %1_var=!%1:~7,1!
     set %1_ai=!%1:~8!
+    if "!%1_ai!" == "_tW;," (set %1_name=Goalpost
+    ) else set %1_name=%1
 exit /B
 
 :batname
