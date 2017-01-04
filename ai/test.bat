@@ -218,7 +218,7 @@ exit /B 0
 
 :testCompError
     call ai\compile.bat "%~2" >nul 2>nul
-    if ErrorLevel 0 (
+    if "%ErrorLevel%" == "0" (
         echo NG: Expected compilation of %1, "%~2", to fail.
         exit /B 1
     )
