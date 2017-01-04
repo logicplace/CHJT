@@ -277,7 +277,7 @@ goto editLevel
     :: q = Quit
     if %action% == 7 (
         set SuccessMessage=
-        goto :confirmQuit
+        (set Labels=title afterEditLevelCases) && goto confirmQuit
     ) else call :editLevelCase%action%
     goto afterEditLevelCases
 
@@ -382,11 +382,11 @@ goto editLevel
     :: p = type text command
     :editLevelCase16
         set /P Command=:
-        for /F "tokens=1*" %%i in ("%Command%") do (
-            set cmd=%%i
-            set arg1=%%~j
-            set arg2=%%~k
-            set arg3=%%~l
+        for /F "tokens=1,2,3,4" %%G in ("%Command%") do (
+            set cmd=%%G
+            set arg1=%%~H
+            set arg2=%%~I
+            set arg3=%%~J
         )
         call :upper cmd
         if "%cmd:HELP=H%" == "H" goto editLevelCase6
@@ -409,15 +409,15 @@ goto editLevel
         if "%cmd:JUMP=J%" == "J" call :setCursor %arg1% %arg2%
         if "%cmd:TILE=Z%" == "Z" call :setCurrentTile %arg1% %arg2%
         if "%cmd:NEW=N%" == "N" call :aiAtCursor "%arg1%" %arg2% %arg3%
-        if "%cmd:EDIT=E%" == "E" call :openAI "%arg1" 
+        if "%cmd:EDIT=E%" == "E" call :openAI "%arg1%" 
         if "%cmd%" == "NE" (
             call :aiAtCursor "%arg1%" %arg2% %arg3%
-            call :openAI "%arg1"
+            call :openAI "%arg1%"
         )
         if "%cmd:COPY=C%" == "C" call :copyAI2Cursor "%arg1%" "%arg2%"
         if "%cmd%" == "CE" (
             call :copyAI2Cursor "%arg1%" "%arg2%"
-            call :openAI "%arg2"
+            call :openAI "%arg2%"
         )
         if "%cmd:START=.%" == "." (
             call :getCursor
@@ -426,16 +426,16 @@ goto editLevel
         )
         if "%cmd:GOAL=/%" == "/" (
             call :getVariableOf "Goalpost"
-            if ErrorLevel 0 (
-                :: Exists, move it ::
-                call :getCursor
-                set %enemy%_x=!TmpX!
-                set %enemy%_y=!TmpY!
-            ) else (
+            if ErrorLevel 1 (
                 :: Does not exist, create it ::
                 call :aiAtCursor "Goalpost" 0 0
-                set %enemy%_avatar=▐
-                set %enemy%_ai=_tW;,
+                set enemy!enemys!_avatar=▐
+                set enemy!enemys!_ai=_tW;,
+            ) else (
+                :: Exists, move it ::
+                call :getCursor
+                set !enemy!_x=!TmpX!
+                set !enemy!_y=!TmpY!
             )
         )
         if "%cmd%" == "NAME" (
@@ -555,7 +555,7 @@ goto editLevel
     call :editAICase%action%
     if %action% == 2 (
         set SuccessMessage=
-        goto :confirmQuit
+        (set Labels=endEditAI afterEditAICases) && goto confirmQuit
     )
     goto afterEditAICases
 
@@ -733,11 +733,11 @@ goto editLevel
     :: p - Enter command ::
     :editAICase8
         set /P Command=:
-        for /F "tokens=1*" %%i in ("%Command%") do (
-            set cmd=%%i
-            set arg1=%%~j
-            set arg2=%%~k
-            set arg3=%%~l
+        for /F "tokens=1,2,3,4" %%G in ("%Command%") do (
+            set cmd=%%G
+            set arg1=%%~H
+            set arg2=%%~I
+            set arg3=%%~J
         )
         call :upper cmd
         if "%cmd:HELP=H%" == "H" goto editAICase3
@@ -848,13 +848,13 @@ goto editLevel
         )
         if "%cmd%" == "STATE" (
             choice /C 0123456789 /N /M "New state: "
-            if ErrorLevel 0 exit /B
+            if not ErrorLevel 1 exit /B
             set /A EditorState=ErrorLevel - 1
             set SuccessMessage=Changed initial AI state
         )
         if "%cmd%" == "VAR" (
             choice /C 0123456789 /N /M "New var: "
-            if ErrorLevel 0 exit /B
+            if not ErrorLevel 1 exit /B
             set /A EditorState=ErrorLevel - 1
             set SuccessMessage=Changed initial AI var
         )
@@ -963,13 +963,18 @@ goto editLevel
     :: o - Save AI ::
     :editAICase20
         set EditorAI=
-        for /L %%i in (1,1,%LastLine%) do for /F "tokens=1* eol=" %%j in ('ai\compile.bat "%%i"') do (
-            if not ErrorLevel 0 (
-                pause
-                set SuccessMessage=Error compiling AI on line %%i
-                exit /B
+        for /L %%i in (1,1,%LastLine%) do (
+            set Tmp= !EditorLine%%i!
+            if not "!Tmp: =!" == "" (
+                for /F "tokens=1* eol=" %%j in ('ai\compile.bat "!Tmp!" ^|^| echo error error') do (
+                    if "%%j" == "error" (
+                        pause
+                        set SuccessMessage=Error compiling AI on line %%i
+                        exit /B
+                    )
+                    set EditorAI=!EditorAI!%%~k
+                )
             )
-            set EditorAI=!EditorAI!%%~k
         )
         set %EditorI%_ai=%EditorAI%
         set SuccessMessage=Saved AI "%EditorName%"
@@ -985,6 +990,8 @@ goto editLevel
     
     :afterEditAICases
 goto editAILoop
+:endEditAI
+exit /B
 
 :drawHiddenPane
     set LeftOffset=0
@@ -1304,17 +1311,23 @@ exit /B
 ::aiAtCursor "Name" [State] [Value]
     call :getCursor
     call :getVariableOf %1
+
+    if not ErrorLevel 1 (
+        set SuccessMessage=An AI with that name already exists
+        exit /B 1
+    )
+    
     :: Add a new entry then ::
     set /A enemys+=1
     set /A enemy%enemys%_name=%~1
 
-    set %enemy%_name=%~1
-    set %enemy%_avatar=@
-    set %enemy%_x=%TmpX%
-    set %enemy%_y=%TmpY%
-    set %enemy%_state=%~2
-    set %enemy%_var=%~3
-    set %enemy%_ai=
+    set enemy%enemys%_name=%~1
+    set enemy%enemys%_avatar=@
+    set enemy%enemys%_x=%TmpX%
+    set enemy%enemys%_y=%TmpY%
+    set enemy%enemys%_state=%~2
+    set enemy%enemys%_var=%~3
+    set enemy%enemys%_ai=
 
     set SuccessMessage=Created new AI "%~1" at [%TmpX%,%TmpY%]
 exit /B
@@ -1345,7 +1358,7 @@ exit /B 0
 exit /B 0
 
 :getVariableOf
-::getVariableOf "Name" -> enemy
+::getVariableOf "Name" [new] -> enemy
     set enemy=
     for /L %%i in (1,1,%enemys%) do (
         if "!enemy%%i_name!" == "%~1" (
@@ -1515,8 +1528,12 @@ exit /B
 
 :confirmQuit
 	:: Called function ::
+    for /F "tokens=1,2" %%i in ("%Labels%") do (
+        set YesLabel=%%i
+        set NoLabel=%%j
+    )
 	choice /N /M "Are you sure you want to quit (Y/N)? "
-	if ErrorLevel 1 goto title
-exit /B
+	if "%ErrorLevel%" == "1" goto %YesLabel%
+    goto %NoLabel%
 
 :quit
