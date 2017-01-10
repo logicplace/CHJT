@@ -695,10 +695,10 @@ exit /B
 				set enemy%%i_state=%%C
 				set enemy%%i_var=%%D
 				set AI=!ai%%E!
-				if "%%F" == "" set AI=!AI:%%1=%%F!
-				if "%%G" == "" set AI=!AI:%%2=%%G!
-				if "%%H" == "" set AI=!AI:%%3=%%H!
-				if "%%I" == "" set AI=!AI:%%4=%%I!
+				if "%%F" == "" set AI=!AI:$1=%%F!
+				if "%%G" == "" set AI=!AI:$2=%%G!
+				if "%%H" == "" set AI=!AI:$3=%%H!
+				if "%%I" == "" set AI=!AI:$4=%%I!
 				set enemy%%i_ai=!AI!
 			)
 		)
