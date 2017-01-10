@@ -82,6 +82,7 @@ exit /B
         call :newline "sprite(!Arg!)"
     ) else if "%~1" == "@" (call :newline "face(left)"
     ) else if "%~1" == "#" (call :newline "face(right)"
+    ) else if "%~1" == "I" (call :newline "reset()"
     ) else if "%~1" == "." (call :newline "stop()"
     ) else if "%~1" == "," (call :newline "stop(pass)"
     ) else if "%~1" == "c" (call :condition "?visible"

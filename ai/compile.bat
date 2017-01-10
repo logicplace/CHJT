@@ -120,6 +120,7 @@ if "%Word%" == "noop" (set Command=0
     call :crunchSpace
     call :append 1 ""
 ) else if "%Word%" == "face" (call :argument "left=@" "right=#"
+) else if "%Word%" == "reset" (call :argument "=I"
 ) else if "%Word%" == "stop" (call :argument "=." "pass=,"
 ) else if "%Word%" == "var++" (set Command=+
 ) else if "%Word%" == "var--" (set Command=-

@@ -6,7 +6,7 @@ setlocal EnableDelayedExpansion
 
 set TmpAI=%~1
 set TmpStart=0
-set NoArg=0123456789DBFKWHU@#clrdughLRxX_{}tf;OA+-.,
+set NoArg=0123456789DBFKWHU@#IclrdughLRxX_{}tf;OA+-.,
 :: Variable name form: TypeArgs                                                                   ::
 ::   Type: Arg = String, Num = Number                                          ::
 ::   Args: Sequences of numbers, each digit is the amount of bytes that arg is ::
