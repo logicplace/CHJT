@@ -92,7 +92,7 @@ if exist "save.bat" (
 
 :levelEditor
 cls
-call editor.bat 1
+call editor.bat
 goto title
 
 :start
@@ -654,6 +654,7 @@ exit /B
 		set WantHorz=0
 	)
 
+	call "%~1.bat" %2
 	if not "%2" == "win" (
 		if not "%LevelName%" == "" (
 			title %title% - %LevelName%
@@ -686,16 +687,20 @@ exit /B
 
 	:: Parse enemies
 	if "%2" == "" (
-		set /A enemys-=1
 		for /L %%i in (1,1,!enemys!) do (
 			set enemy%%i_avatar=!enemy%%i:~0,1!
-			:: Octal avoidance ::
-			set /A enemy%%i_x=1!enemy%%i:~1,3! - 1000
-			set /A enemy%%i_y=1!enemy%%i:~4,2! - 100
-			set enemy%%i_state=!enemy%%i:~6,1!
-			set enemy%%i_var=!enemy%%i:~7,1!
-			set enemy%%i_ai=
-			for /F "tokens=* eol=" %%G in ('ai\split.bat "!enemy%%i:~8!"') do set enemy%%i_ai=!enemy%%i_ai! "%%G"
+			for /F "tokens=1,2,3,4,5,6,7,8,9 delims=, eol=" %%A in ("!enemy%%i:~1!") do (
+				set enemy%%i_x=%%A
+				set enemy%%i_y=%%B
+				set enemy%%i_state=%%C
+				set enemy%%i_var=%%D
+				set AI=!ai%%E!
+				if "%%F" == "" set AI=!AI:%%1=%%F!
+				if "%%G" == "" set AI=!AI:%%2=%%G!
+				if "%%H" == "" set AI=!AI:%%3=%%H!
+				if "%%I" == "" set AI=!AI:%%4=%%I!
+				for /F "tokens=* eol=" %%Z in ('ai\split.bat "!AI!"') do set enemy%%i_ai=!enemy%%i_ai! "%%Z"
+			)
 		)
 	)
 exit /B 1

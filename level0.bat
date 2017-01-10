@@ -7,12 +7,16 @@ set color=07
 if not "%1" == "load" (
 	set CharX=15
 	set CharY=22
+	set ais=3
+	set ai1=_tW;,
+	set ai2=xtB9;_OXtK;lf2;.
+	set ai3=v%%1f1+;t{tC¬3;fC⌐2;s00;.
 	set enemys=5
-	set enemy1=▐0581700_tW;,
-	set enemy2=σ0502200xtB9;_OXtK;lf2;.
-	set enemy3=⌐0590700v08f1+;t{tC¬3;fC⌐2;s00;.
-	set enemy4=⌐0300203v14f1+;t{tC¬3;fC⌐2;s00;.
-	set enemy5=¬0081011v10f1+;t{tC¬3;fC⌐2;s00;.
+	set enemy1=▐58,17,0,0,1
+	set enemy2=σ50,22,0,0,2
+	set enemy3=⌐59,7,0,0,3,08
+	set enemy4=⌐30,2,0,3,3,14
+	set enemy5=¬8,10,1,1,3,10
 )
 set  line0=                                                                                         #
 set  line1=                                                                                         #
