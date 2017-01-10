@@ -217,7 +217,7 @@ exit /B 1
 
 :compArg
     call :compCommon %~1
-    call :%~3 Word "%Word%"
+    if not "%Word:~0,1%" == "$" call :%~3 Word "%Word%"
     set Cond=%~2%Word%
 exit /B 0
 
