@@ -16,9 +16,13 @@ set SuccessMessage=
 set Cursor=◘
 set CursorX=0
 set CursorY=0
+set TCursorX=0
+set TCursorY=4
 rem set CursorBlink=/D 9 /T 1
 set CursorBlink=
 set AITabStart=1
+set EnemyTabStart=1
+set EnemyCursor=1
 
 :::: Declare tilemap ::::
 (set TileA0=☺) && (set CollA0=0)
@@ -238,6 +242,7 @@ set height=24
 set color=07
 set CharX=0
 set CharY=0
+set ais=0
 set enemys=0
 for /L %%i in (0,1,%height%) do (
     (set line%%i=                                                                               )
@@ -259,12 +264,17 @@ if not "%pane%" == "" (
 for /L %%i in (1,1,%enemys%) do (
     call :parseAI enemy%%i
 )
+for /L %%i in (1,1,%ais%) do (
+    if "!ai%%i!" == "_tW;," (set ai%%i_name=Goalpost
+    ) else set ai%%i_name=AI %%i
+)
 set pane=Tile
 set ProjectFileName=
 set ExportFileName=%FileName%
 goto editLevel
 
 :editLevel
+    title CRAZY HAPPY JOY TIME - LEVEL EDITOR - %LevelName%
     :: Level editor main loop ::
     call :drawLevel
 
@@ -273,7 +283,7 @@ goto editLevel
 
     :: Input ::
     if not "%SuccessMessage%" == "" echo %SuccessMessage%
-    choice /C 9wasdhqrcnoxjtbp0123zWS /CS /N %CursorBlink% >nul
+    choice /C 9wasdhqrcnoxjtbp0123zWSAD /CS /N %CursorBlink% >nul
 	set action=%ErrorLevel%
     :: q = Quit
     if %action% == 7 (
@@ -311,9 +321,9 @@ goto editLevel
         echo.   x - Export level file      x  export [File]         Export to the level file
         echo.   j - Jump to the coord      j  jump X Y          Jump to a given map position
         echo.   z - Select tile eg A0      z  tile @#/@ [C]   Set tile by address or literal
-        echo.   n - New AI  at cursor      n  new "Name" [State] [Var]  Create a new AI here
+        echo.   n - New AI  at cursor      n  new "Name" [Ava State Var]  Create new AI here
         echo.   r - Replace this tile      e  edit "Name"           Open an AI in the editor
-        echo.   c - Show/hide  charas      c  copy "Name" "Name"    Make a copy of AI 1 here
+        echo.   c - Show/hide  charas      c  change Prop Val     Change property of this AI
         echo.   t - Toggle pane's tab      .  start                     Set start point here
         echo.   b - Show collision #s      /  goal                             Set goal here
         echo.   WS - Scroll  AI  pane         name                            Name the level
@@ -325,7 +335,7 @@ goto editLevel
         echo.                                 Shorthand: ll, lr, lu, ld
         echo.
         echo.                                 The 1 forms are faster but both work the same‼
-        echo.                                 These 1s may combine: ne, ce, oq, xq, and oxq
+        echo.                                 These 1s may combine: ne, oq, xq, and oxq
         echo.===============================================================================
         pause
         set SuccessMessage=
@@ -344,9 +354,12 @@ goto editLevel
     :: n = New AI at position
     :editLevelCase10
         set /P TmpAIName=Enter new AI's name: 
+        set /P TmpAIAvatar=Enter new AI's avatar (you may use a tile index): 
         set /P TmpAIState=Enter new AI's initial state: 
         set /P TmpAIValue=Enter new AI's initial value: 
         call :aiAtCursor "%TmpAIName%" %TmpAIState% %TmpAIValue%
+        call :parseTileIndex TmpAIAvatar
+        set enemy%enemys%_avatar=%TmpAIAvatar%
         exit /B
 
     :: o = write Out
@@ -369,6 +382,8 @@ goto editLevel
     :: t = switch Tabs
     :editLevelCase14
         if "%pane%" == "AI" (
+            set pane=Enemy
+        ) else if "%pane%" == "Enemy" (
             set pane=Tile
         ) else (
             set pane=AI
@@ -377,7 +392,8 @@ goto editLevel
 
     :: b = show collision Blocks instead
     :editLevelCase15
-        set pane=Coll
+        if "%pane%" == "Coll" (set pane=Tile
+        ) else set pane=Coll
         exit /B
 
     :: p = type text command
@@ -409,16 +425,23 @@ goto editLevel
         )
         if "%cmd:JUMP=J%" == "J" call :setCursor %arg1% %arg2%
         if "%cmd:TILE=Z%" == "Z" call :setCurrentTile %arg1% %arg2%
-        if "%cmd:NEW=N%" == "N" call :aiAtCursor "%arg1%" %arg2% %arg3%
+        if "%cmd:NEW=N%" == "N" call :newAI
         if "%cmd:EDIT=E%" == "E" call :openAI "%arg1%" 
         if "%cmd%" == "NE" (
-            call :aiAtCursor "%arg1%" %arg2% %arg3%
+            call :newAI
             call :openAI "%arg1%"
         )
-        if "%cmd:COPY=C%" == "C" call :copyAI2Cursor "%arg1%" "%arg2%"
-        if "%cmd%" == "CE" (
-            call :copyAI2Cursor "%arg1%" "%arg2%"
-            call :openAI "%arg2%"
+        if "%cmd:CHANGE=C%" == "C" (
+            call :getEnemyAtCursor
+            if not ErrorLevel 1 (
+                if "%arg1%" == "avatar" set !enemy!_avatar=%arg2%
+                if "%arg1%" == "state" set !enemy!_state=%arg2%
+                if "%arg1%" == "var" set !enemy!_var=%arg2%
+                if "%arg1%" == "pos" (
+                    set !enemy!_x=%arg2%
+                    set !enemy!_y=%arg3%
+                )
+            )
         )
         if "%cmd:START=.%" == "." (
             call :getCursor
@@ -429,15 +452,10 @@ goto editLevel
             call :getVariableOf "Goalpost"
             if ErrorLevel 1 (
                 :: Does not exist, create it ::
-                call :aiAtCursor "Goalpost" 0 0
-                set enemy!enemys!_avatar=▐
-                set enemy!enemys!_ai=_tW;,
-            ) else (
-                :: Exists, move it ::
-                call :getCursor
-                set !enemy!_x=!TmpX!
-                set !enemy!_y=!TmpY!
+                set ai!ais!=_tW;,
             )
+            call :aiAtCursor "Goalpost" 0 0
+            set enemy!enemys!_avatar=▐
         )
         if "%cmd%" == "NAME" (
             set LevelName=%arg1%
@@ -461,6 +479,21 @@ goto editLevel
         if "%cmd:LINEU=LU%" == "LU" call :writeLine U %arg1%
         if "%cmd:LINED=LD%" == "LD" call :writeLine D %arg1%
         exit /B
+
+        :newAI
+            if "%arg3%" == "" (
+                :: Only a new AI ::
+                call :getVariableOf "%arg1%"
+                if ErrorLevel 1 (
+                    set /A ais+=1
+                    set ai!ais!_name=%arg1%
+                )
+            ) else (
+                :: New AI and enemy ::
+                call :aiAtCursor "%arg1%" %arg3% %arg4%
+                call :parseTileIndex arg2
+                set enemy!enemys!_avatar=!arg2!
+            )
         
     :: 0123 = set collision value to
     :editLevelCase17
@@ -484,37 +517,139 @@ goto editLevel
     :editLevelCase21
         set /P TileCommand=Tile: 
         :parseAndSetCurrentTile
-        set TC2=%TileCommand:~1,1%
-
-        :: Literal character case ::
-        if "%TC2%" == "" (
-            set CurrentTile=%TileCommand%
-            set CurrentColl=%CollInLitCase%
-            exit /B
+        call :parseTileIndex TileCommand
+        if not ErrorLevel 1 (
+            set TCursorX=%Test:~1,1%
+            set TCursorY=%Test:~0,1%
+            set TCursorY=%TCursorY:A=4%
+            set TCursorY=%TCursorY:B=5%
+            set TCursorY=%TCursorY:C=6%
+            set TCursorY=%TCursorY:D=7%
+            set TCursorY=%TCursorY:E=8%
+            set TCursorY=%TCursorY:F=9%
+            set TCursorY=%TCursorY:G=10%
+            set TCursorY=%TCursorY:H=11%
+            set TCursorY=%TCursorY:I=12%
+            set TCursorY=%TCursorY:J=13%
+            set TCursorY=%TCursorY:K=14%
+            set TCursorY=%TCursorY:L=15%
+            set TCursorY=%TCursorY:M=16%
+            set TCursorY=%TCursorY:N=17%
+            set TCursorY=%TCursorY:O=18%
+            set TCursorY=%TCursorY:P=19%
         )
+        exit /B
 
-        :: Normalize A0 and 0A ::
-        set /A Test=TC2
-        if not %TC2% == %Test% set TileCommand=%TC2%%TileCommand:~0,1%
-        call :upper TileCommand
+        :parseTileIndex
+            set TC2=!%1:~1,1!
 
-        :: Finally, set the character ::
+            :: Literal character case ::
+            if "%TC2%" == "" (
+                set %2=!%1!
+                if not "%3" == "" set %3=%CollInLitCase%
+                exit /B 1
+            )
+
+            :: Normalize A0 and 0A ::
+            set /A Test=TC2
+            if %TC2% == %Test% (set Test=!%1!
+            ) else set Test=%TC2%!%1:~0,1!
+            call :upper Test
+
+            :: Finally, set the character ::
+            set %2=!Tile%Test%!
+            if not "%3" == "" set %3=!Coll%Test%!
+        exit /B 0
+
+    :: WSAD - control pane
+    :editLevelCase22
+        if "%pane:Coll=Tile%" == "Tile" (
+            if %TCursorY% GTR 2 (
+                set /A TCursorY-=1
+                call :n2a
+            )
+        ) else if "%pane%" == "AI" (
+            if %AITabStart% GTR 1 set /A AITabStart-=1
+        ) else if "%pane%" == "Enemy" (
+            if %EnemyCursor% GTR 1 (
+                set /A EnemyCursor-=1
+                call :jumpToEnemy
+            ) else if %EnemyTabStart% GTR 1 (
+                set /A EnemyTabStart-=1
+                call :jumpToEnemy
+            )
+        )
+        set SuccessMessage=
+        exit /B
+    :editLevelCase23
+        if "%pane:Coll=Tile%" == "Tile" (
+            if %TCursorY% LSS 19 (
+                set /A TCursorY+=1
+                call :n2a
+            )
+        ) else if "%pane%" == "AI" (
+            set /A Tmp=enemys - 19
+            if %AITabStart% LSS !Tmp! set /A AITabStart+=1
+        ) else if "%pane%" == "Enemy" (
+            set /A EnemyTabStop=EnemyTabStart + 19
+            if %enemys% LSS %EnemyTabStop% (set Test=%enemys%
+            ) else set Test=%EnemyTabStop%
+
+            if %EnemyCursor% LSS %Test% (
+                set /A EnemyCursor+=1
+                call :jumpToEnemy
+            ) else if not %EnemyTabStop% EQU %enemys% (
+                set /A EnemyTabStart+=1
+                call :jumpToEnemy
+            )
+        )
+        set SuccessMessage=
+        exit /B
+    :editLevelCase24
+        if "%pane:Coll=Tile%" == "Tile" (
+            if %TCursorX% GTR 0 (
+                set /A TCursorX-=1
+                call :n2a
+            )
+        )
+        set SuccessMessage=
+        exit /B
+    :editLevelCase25
+        if "%pane:Coll=Tile%" == "Tile" (
+            if %TCursorX% LSS 9 (
+                set /A TCursorX+=1
+                call :n2a
+            )
+        )
+        set SuccessMessage=
+        exit /B
+    
+    :n2a
+        set A=%TCursorY:10=G%
+        set A=%A:11=H%
+        set A=%A:12=I%
+        set A=%A:13=J%
+        set A=%A:14=K%
+        set A=%A:15=L%
+        set A=%A:16=M%
+        set A=%A:17=N%
+        set A=%A:18=O%
+        set A=%A:19=P%
+        set A=%A:4=A%
+        set A=%A:5=B%
+        set A=%A:6=C%
+        set A=%A:7=D%
+        set A=%A:8=E%
+        set A=%A:9=F%
+        set TileCommand=%A%%TCursorX%
         set CurrentTile=!Tile%TileCommand%!
         set CurrentColl=!Coll%TileCommand%!
+    exit /B
 
-        exit /B
-
-    :: WS - scroll tab (AI) pane
-    :editLevelCase22
-        if %AITabStart% GTR 1 set /A AITabStart-=1
-        set SuccessMessage=
-        exit /B
-
-    :editLevelCase23
-        set /A Tmp=enemys - 19
-        if %AITabStart% LSS %Tmp% set /A AITabStart+=1
-        set SuccessMessage=
-        exit /B
+    :jumpToEnemy
+        set /A enemy=EnemyTabStart + EnemyCursor - 1
+        call :setCursor !enemy%enemy%_x! !enemy%enemy%_y!
+    exit /B
 
     :afterEditLevelCases
     if "%Cursor%" == "◘" (
@@ -529,11 +664,7 @@ goto editLevel
     :: Load AI into editor ::
     set EditorI=%~1
     set EditorName=!%~1_name!
-    set EditorAvatar=!%~1_avatar!
-    set EditorX=!%~1_x!
-    set EditorY=!%~1_y!
-    set EditorState=!%~1_state!
-    set EditorVar=!%~1_var!
+    title CRAZY HAPPY JOY TIME - AI EDITOR - %EditorName%
 
     set EditorTop=1
     set EditorCursor=1
@@ -1025,7 +1156,8 @@ exit /B
     set LeftOffset=16
     set  eline0=╔══════════════╦
     set  eline1=║ ►Tiles◄  AI  ║
-    set  eline2=║              ║
+    set  eline2=          ║
+    set  eline2=║   !eline2:~0,%TCursorX%!▼!eline2:~%TCursorX%!
     set  eline3=║   0123456789 ║
     set  eline4=║ A ☺☻♥♦♣♠•◘○◙ ║
     set  eline5=║ B ♂♀♪♫☼►◄↕‼¶ ║
@@ -1043,6 +1175,7 @@ exit /B
     set eline17=║ N ΓπΣσµτΦΘΩδ ║
     set eline18=║ O ∞φε∩≡±≥≤⌠⌡ ║
     set eline19=║ P ÷≈°∙·√ⁿ²■  ║
+    set eline%TCursorY%=!eline%TCursorY%:~0,1!►!eline%TCursorY%:~2!
     set eline20=║  Use zA0 to  ║
     set eline21=║  select ☺    ║
     set eline22=╚══════════════╩
@@ -1052,7 +1185,8 @@ exit /B
     set LeftOffset=16
     set  eline0=╔══════════════╦
     set  eline1=║ ►Tiles◄  AI  ║
-    set  eline2=║              ║
+    set  eline2=          ║
+    set  eline2=║   !eline2:~0,%TCursorX%!▼!eline2:~%TCursorX%!
     set  eline3=║   0123456789 ║
     set  eline4=║ A 0022220101 ║
     set  eline5=║ B 2222022221 ║
@@ -1070,6 +1204,7 @@ exit /B
     set eline17=║ N 2222222222 ║
     set eline18=║ O 2222333311 ║
     set eline19=║ P 333221331  ║
+    set eline%TCursorY%=!eline%TCursorY%:~0,1!►!eline%TCursorY%:~2!
     set eline20=║  Use zA0 to  ║
     set eline21=║  select ☺    ║
     set eline22=╚══════════════╩
@@ -1081,17 +1216,48 @@ exit /B
     set  eline1=║  Tiles  ►AI◄ ║
     set  eline2=║              ║
     set sline=2
-    set /A senemies=19 + %AITabStart%
-    if %enemys% LSS %senemies% set senemies=%enemys%
-    for /L %%i in (%AITabStart%,1,%senemies%) do (
+    set /A sais=19 + %AITabStart%
+    if %ais% LSS %sais% set sais=%ais%
+    for /L %%i in (%AITabStart%,1,%sais%) do (
         set /A sline+=1
-        set eline!sline!=║ !enemy%%i_name:~0,12!            
+        set eline!sline!=║ !ai%%i_name:~0,12!            
     )
     for /L %%i in (3,1,%sline%) do (
         set eline%%i=!eline%%i:~0,14! ║
     )
     set /A sline+=1
     for /L %%i in (%sline%,1,21) do set eline%%i=║              ║
+    set eline22=╚══════════════╩
+exit /B
+
+:enemyName
+    for /F "tokens=1 delims=," %%i in ("!enemy%1_ai!") do set enemy=%%i
+    set n=%1
+    if "%n:~1%" == "" (set enemy=!ai%enemy%_name:~0,10! %1
+    ) else set enemy=!ai%enemy%_name:~0,9! %1
+exit /B
+
+:drawEnemyPane
+    set LeftOffset=16
+    set  eline0=╔══════════════╦
+    set  eline1=║  AI  ►Enemy◄ ║
+    set  eline2=║              ║
+    set sline=2
+    set /A senemies=19 + %EnemyTabStart%
+    if %enemys% LSS %senemies% set senemies=%enemys%
+    for /L %%i in (%EnemyTabStart%,1,%senemies%) do (
+        set /A sline+=1
+        call :enemyName %%i
+        set eline!sline!=║ !enemy!            
+    )
+    for /L %%i in (3,1,%sline%) do (
+        set eline%%i=!eline%%i:~0,14! ║
+    )
+    set /A sline+=1
+    for /L %%i in (%sline%,1,21) do set eline%%i=║              ║
+    set /A EnemyCursor+=2
+    set eline%EnemyCursor%=║►!eline%EnemyCursor%:~2!
+    set /A EnemyCursor-=2
     set eline22=╚══════════════╩
 exit /B
 
@@ -1136,7 +1302,7 @@ exit /B
 :draw
 :: draw char x y abs/rel
 	:: Calc screen position ::
-    if "%3" == "abs" (
+    if "%4" == "abs" (
         set /A TmpX=%2 - ScreenLeft
         set /A TmpY=%3 - ScreenTop
     ) else (
@@ -1148,8 +1314,9 @@ exit /B
     set /A TmpX=TmpX + LeftOffset
 
 	:: Check if it's within bounds ::
+    set RightBound=79 - LeftOffset
 	if %TmpX% LSS %LeftOffset% exit /B
-	if %TmpX% GTR 79 exit /B
+	if %TmpX% GTR %RightBound% exit /B
 	if %TmpY% LSS 0 exit /B
 	if %TmpY% GTR 22 exit /B
 
@@ -1163,7 +1330,6 @@ exit /B
     if %EditorBottom% GEQ 100 (set Pad=pad3
     ) else set Pad=pad2
 
-    call :drawAIInfo
     set OneBased=1
     for /L %%i in (%EditorTop%,1,%EditorBottom%) do (
         :: Pad the number appropriately ::
@@ -1179,43 +1345,13 @@ exit /B
             set /A LastLine+=1
         )
 
-        set tline!OneBased!=!Cursor!!LineNumber!│ !EditorLine%%i!
+        set eline!OneBased!=!Cursor!!LineNumber!│ !EditorLine%%i!
         set /A OneBased+=1
     )
 
     :: Draw the lines ::
     cls
-    for /L %%i in (1,1,23) do @echo.!eline%%i!!tline%%i!
-exit /B
-
-:drawAIInfo
-    set  eline1=AI name:       ║
-    set  eline2= %EditorName:~0,14%              
-    set  eline2=%eline2:~0,15%║
-    set  eline3= %EditorName:~14,14%              
-    set  eline3=%eline3:~0,15%║
-    set  eline4=Initial...     ║
-    set  eline5= Sprite: %EditorAvatar%     ║
-    set  eline6= State:  %EditorState%     ║
-    :: TODO: If initial variable width is increased this needs to use pad2
-    set  eline7= Var:    %EditorVar%     ║
-    set  eline8= Pos: [%EditorX%,%EditorY%]              
-    set  eline8=%eline8:~0,15%║
-    set  eline9=               ║
-    set eline10=               ║
-    set eline11= Commands:     ║
-    set eline12=  0123456789D  ║
-    set eline13=  BFKWHUC@#,.  ║
-    set eline14=               ║
-    set eline15= Conditionals: ║
-    set eline16=  clrdughLRxX  ║
-    set eline17=  _{} tf; OA   ║
-    set eline18=               ║
-    set eline19= Variable:     ║
-    set eline20=  s v + -      ║
-    set eline21=               ║
-    set eline22= Press h       ║
-    set eline23=      for help ║
+    for /L %%i in (1,1,23) do @echo.!eline%%i!
 exit /B
 
 :moveCursor
@@ -1224,21 +1360,41 @@ exit /B
     set /A CursorY=CursorY + %2
     set /A RightBound=79 - LeftOffset
 
-    if %CursorX% LSS 0 set CursorX=0
-	if %CursorX% GTR %RightBound% set CursorX=%RightBound%
-	if %CursorY% LSS 0 set CursorY=0
-	if %CursorY% GTR 22 set CursorY=22
+    if %CursorX% LSS 0 (
+        set /A ScreenLeft+=CursorX
+        if !ScreenLeft! LSS 0 set ScreenLeft=0
+        set CursorX=0
+    )
+	if %CursorX% GTR %RightBound% (
+        set /A ScreenLeft+=CursorX - RightBound
+        set /A MaxScreenLeft=width - 79 + LeftOffset
+        if !MaxScreenLeft! LSS 0 set MaxScreenLeft=0
+        if !ScreenLeft! GTR !MaxScreenLeft! set ScreenLeft=!MaxScreenLeft!
+        set CursorX=%RightBound%
+    )
+	if %CursorY% LSS 0 (
+        set /A ScreenTop+=CursorY
+        if !ScreenTop! LSS 0 set ScreenTop=0
+        set CursorY=0
+    )
+	if %CursorY% GEQ 22 (
+        set /A ScreenTop+=CursorY - 22
+        set /A MaxScreenTop=height - 23
+        if !MaxScreenTop! LSS 0 set MaxScreenLeft=0
+        if !ScreenTop! GTR !MaxScreenTop! set ScreenTop=!MaxScreenTop!
+        set CursorY=22
+    )
 exit /B
 
 :setCursor
-:: moveCursorAbs X Y
+:: setCursor X Y
     :: Move the screen so the new position is showing and the cursor is in the same spot.
     set /A ScreenLeft=%~1 - CursorX
     set /A ScreenTop=%~2 - CursorY
 
     :: Keep screen in bounds ::
     set /A MaxScreenLeft=width - 79 + LeftOffset
-    set /A MaxScreenTop=height - 22
+    set /A MaxScreenTop=height - 23
 
     if %ScreenLeft% GTR %MaxScreenLeft% set ScreenLeft=%MaxScreenLeft%
     if %ScreenLeft% LSS 0 set ScreenLeft=0
@@ -1249,8 +1405,8 @@ exit /B
     set /A TmpX=ScreenLeft + CursorX
     set /A TmpY=ScreenTop + CursorY
 
-    if %TmpX% NEQ %~1 set CursorX=%~1 - ScreenLeft
-    if %TmpY% NEQ %~2 set CursorY=%~2 - ScreenTop
+    if %TmpX% NEQ %~1 set /A CursorX=%~1 - ScreenLeft
+    if %TmpY% NEQ %~2 set /A CursorY=%~2 - ScreenTop
 
     set /A TmpX=ScreenLeft + CursorX
     set /A TmpY=ScreenTop + CursorY
@@ -1313,39 +1469,25 @@ exit /B
     call :getCursor
     call :getVariableOf %1
 
-    if not ErrorLevel 1 (
-        set SuccessMessage=An AI with that name already exists
-        exit /B 1
+    set SuccessMessage=
+    if ErrorLevel 1 (
+        set /A ais+=1
+        set /A ai!ais!_name=%~1
+        set SuccessMessage=with new AI "%~1" 
     )
     
     :: Add a new entry then ::
     set /A enemys+=1
-    set /A enemy%enemys%_name=%~1
 
-    set enemy%enemys%_name=%~1
     set enemy%enemys%_avatar=@
     set enemy%enemys%_x=%TmpX%
     set enemy%enemys%_y=%TmpY%
     set enemy%enemys%_state=%~2
     set enemy%enemys%_var=%~3
-    set enemy%enemys%_ai=
+    set enemy%enemys%_ai=%ai:~2%
 
-    set SuccessMessage=Created new AI "%~1" at [%TmpX%,%TmpY%]
+    set SuccessMessage=Created new enemy %SuccessMessage%at [%TmpX%,%TmpY%]
 exit /B
-
-:copyAI2Cursor
-::copyAI2Cursor "FromName" "ToName"
-    call :getVariableOf %1
-    if not ErrorLevel 0 (
-        set SuccessMessage=No AI named "%~1"
-        exit /B 1
-    )
-
-    set from=%enemy%
-    call :aiAtCursor %2 !%from%_state! !%from%_var!
-    set %enemy%_avatar=!%from%_avatar!
-    set %enemy%_ai=!%from%_ai!
-exit /B 0
 
 :openAI
 ::openAI "Name"
@@ -1355,14 +1497,26 @@ exit /B 0
         exit /B 1
     )
 
-    call :editAI %enemy%
+    call :editAI %ai%
 exit /B 0
 
 :getVariableOf
-::getVariableOf "Name" [new] -> enemy
+::getVariableOf "Name" [new] -> ai
+    set ai=
+    for /L %%i in (1,1,%ais%) do (
+        if "!ai%%i_name!" == "%~1" (
+            set ai=ai%%i
+            exit /B 0
+        )
+    )
+exit /B 1
+
+:getEnemyAtCursor
+::getEnemyAtCursor -> enemy
+    call :getCursor
     set enemy=
     for /L %%i in (1,1,%enemys%) do (
-        if "!enemy%%i_name!" == "%~1" (
+        if "!enemy%%i_x!,!enemy%%i_y!" == "%TmpX%,%TmpY%" (
             set enemy=enemy%%i
             exit /B 0
         )
@@ -1371,14 +1525,13 @@ exit /B 1
 
 :parseAI
     set %1_avatar=!%1:~0,1!
-    :: Octal avoidance ::
-    set /A %1_x=1!%1:~1,3! - 1000
-    set /A %1_y=1!%1:~4,2! - 100
-    set %1_state=!%1:~6,1!
-    set %1_var=!%1:~7,1!
-    set %1_ai=!%1:~8!
-    if "!%1_ai!" == "_tW;," (set %1_name=Goalpost
-    ) else set %1_name=%1
+    for /F "tokens=1,2,3,4,* delims=, eol=" %%A in ("!%1:~1!") do (
+        set %1_x=%%A
+        set %1_y=%%B
+        set %1_state=%%C
+        set %1_var=%%D
+        set %1_ai=%%E
+    )
 exit /B
 
 :batname
@@ -1408,15 +1561,19 @@ exit /B
 	(echo set color=%color%)>>%ProjectFileName%
 	(echo set CharX=%CharX%)>>%ProjectFileName%
 	(echo set CharY=%CharY%)>>%ProjectFileName%
+	(echo set ais=%ais%)>>%ProjectFileName%
+	for /L %%i in (1,1,%ais%) do (
+		(echo set ai%%i=!ai%%i!)>>%ProjectFileName%
+		(echo set ai%%i_name=!ai%%i_name!)>>%ProjectFileName%
+    )
 	(echo set enemys=%enemys%)>>%ProjectFileName%
 	for /L %%i in (1,1,%enemys%) do (
-		(echo set enemy%%i_name=!%%i_name!)>>%ProjectFileName%
-		(echo set enemy%%i_avatar=!%%i_avatar!)>>%ProjectFileName%
-		(echo set enemy%%i_x=!%%i_x!)>>%ProjectFileName%
-		(echo set enemy%%i_y=!%%i_y!)>>%ProjectFileName%
-		(echo set enemy%%i_state=!%%i_state!)>>%ProjectFileName%
-		(echo set enemy%%i_var=!%%i_var!)>>%ProjectFileName%
-		(echo set enemy%%i_ai=!%%i_ai!)>>%ProjectFileName%
+		(echo set enemy%%i_avatar=!enemy%%i_avatar!)>>%ProjectFileName%
+		(echo set enemy%%i_x=!enemy%%i_x!)>>%ProjectFileName%
+		(echo set enemy%%i_y=!enemy%%i_y!)>>%ProjectFileName%
+		(echo set enemy%%i_state=!enemy%%i_state!)>>%ProjectFileName%
+		(echo set enemy%%i_var=!enemy%%i_var!)>>%ProjectFileName%
+		(echo set enemy%%i_ai=!enemy%%i_ai!)>>%ProjectFileName%
 	)
     set /A hm1=height - 1
     for /L %%i in (0,1,%hm1%) do (
@@ -1439,9 +1596,7 @@ exit /B
 
     :: Compile enemies ::
     for /L %%i in (1,1,%enemys%) do (
-        call :pad3 TmpX !enemy%%i_x!
-        call :pad2 TmpY !enemy%%i_y!
-        set enemy!enemys!=!enemy%%i_avatar!!TmpX!!TmpY!!enemy%%i_state!!enemy%%i_var!!enemy%%i_ai!
+        set enemy!enemys!=!enemy%%i_avatar!!enemy%%i_x!,!enemy%%i_y!,!enemy%%i_state!,!enemy%%i_var!,!enemy%%i_ai!
     )
 
     :: Export data ::
@@ -1454,6 +1609,10 @@ exit /B
     (echo if not "%%1" == "load" ^()>>%ExportFileName%
 	(echo     set CharX=%CharX%)>>%ExportFileName%
 	(echo     set CharY=%CharY%)>>%ExportFileName%
+	(echo     set ais=%ais%)>>%ExportFileName%
+	for /L %%i in (1,1,%ais%) do (
+		(echo     set ai%%i=!ai%%i!)>>%ProjectFileName%
+    )
 	(echo     set enemys=%enemys%)>>%ExportFileName%
 	for /L %%i in (1,1,%enemys%) do (
 		(echo     set enemy%%i=!enemy%%i!)>>%ExportFileName%
