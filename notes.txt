@@ -77,6 +77,13 @@ v: If the variable currently equals the following value (two bytes)
 ,: Quit and let char pass through
 
 ~NEXT~
+I: Return AI to initial state
+w: Cause player to move left
+e: Cause player to move right
+n: Cause player to move up
+b: Cause player to move down
+i: Create new AI ##
+a: Change the current AI to ##
 Weapons
 Items and menu
 Art (Title, gameovers, win?)
