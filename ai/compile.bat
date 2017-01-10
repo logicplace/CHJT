@@ -161,7 +161,13 @@ call :crunchSpace
 goto command
 
 :end
-echo %Open% "%Compiled%"
+if "%~2" == "compressed" (
+    echo %Open% "%Compiled%"
+) else (
+    set res= 
+    for /F "tokens=* eol=" %%i in ('ai\split.bat "%Compiled%"') do set res=!res! "%%i"
+    echo %Open% !res:~2!
+)
 exit /B 0
 
 :doShift

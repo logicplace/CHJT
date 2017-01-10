@@ -191,7 +191,8 @@ REM set test_x=0
 REM set test_y=0
 REM set test_state=0
 REM set test_var=0
-REM set test_ai=ct0;f2;.
+REM set test_ai=test
+REM set aitest="c" "t" "0" ";" "f" "2" ";" "."
 REM call :editAI test
 :::::::::::
 
@@ -265,7 +266,8 @@ for /L %%i in (1,1,%enemys%) do (
     call :parseAI enemy%%i
 )
 for /L %%i in (1,1,%ais%) do (
-    if "!ai%%i!" == "_tW;," (set ai%%i_name=Goalpost
+    set ai=!ai%%i:"='!
+    if "!ai!" == "'_' 't' 'W' ';' ','" (set ai%%i_name=Goalpost
     ) else set ai%%i_name=AI %%i
 )
 set pane=Tile
@@ -670,10 +672,11 @@ goto editLevel
     set EditorCursor=1
 
     set LastLine=1
-    for /F "tokens=* delims=" %%x in ('ai\decompile.bat "!%~1_ai!"') do (
+    for /F "tokens=* delims=" %%x in ('ai\decompile.bat !%~1!') do (
         set EditorLine!LastLine!=%%x
         set /A LastLine+=1
     )
+    pause
 
     :editAILoop
     :: AI editor main loop ::
@@ -954,7 +957,7 @@ goto editLevel
             set SuccessMessage=Decompiled "%arg1%" overwriting !NumLines! lines starting at line %EditorCursor%            
         )
         if "%cmd:COMPILE=C%" == "C" (
-            for /F "tokens=1* eol=" %%i in ('ai\compile.bat "!EditorLine%EditorCursor%!"') do (
+            for /F "tokens=1* eol=" %%i in ('ai\compile.bat "!EditorLine%EditorCursor%!" compressed') do (
                 set SuccessMessage=Compilation: %%~j
             )
         )
@@ -1094,7 +1097,7 @@ goto editLevel
 
     :: o - Save AI ::
     :editAICase20
-        set EditorAI=
+        set EditorAI= 
         for /L %%i in (1,1,%LastLine%) do (
             set Tmp= !EditorLine%%i!
             if not "!Tmp: =!" == "" (
@@ -1104,11 +1107,11 @@ goto editLevel
                         set SuccessMessage=Error compiling AI on line %%i
                         exit /B
                     )
-                    set EditorAI=!EditorAI!%%~k
+                    set EditorAI=!EditorAI! %%k
                 )
             )
         )
-        set %EditorI%_ai=%EditorAI%
+        set %EditorI%=%EditorAI:~2%
         set SuccessMessage=Saved AI "%EditorName%"
         exit /B
 

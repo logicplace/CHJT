@@ -699,7 +699,7 @@ exit /B
 				if "%%G" == "" set AI=!AI:%%2=%%G!
 				if "%%H" == "" set AI=!AI:%%3=%%H!
 				if "%%I" == "" set AI=!AI:%%4=%%I!
-				for /F "tokens=* eol=" %%Z in ('ai\split.bat "!AI!"') do set enemy%%i_ai=!enemy%%i_ai! "%%Z"
+				set enemy%%i_ai=!AI!
 			)
 		)
 	)

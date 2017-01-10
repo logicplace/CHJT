@@ -9,7 +9,13 @@ chcp 65001 >nul
 set Tabs=
 set Condition=
 
-goto :start
+if not "%~2" == ""  (
+    for %%F in (%*) do for /F "tokens=1,2 eol=" %%G in (%%F) do call :decompCommand "%%~G" "%%~H"
+) else (
+    for /F "tokens=1,2 eol=" %%G in ('ai\split.bat "%~1"') do call :decompCommand "%%~G" "%%~H"
+)
+if not "%Condition%" == "" echo %Tabs%%Condition% {
+exit /B 0
 
 :: Helper methods ::
 :condition
@@ -106,7 +112,3 @@ exit /B
     )
 exit /B
 
-:start
-for /F "tokens=1,2 eol=" %%G in ('ai\split.bat "%~1"') do call :decompCommand "%%~G" "%%~H"
-if not "%Condition%" == "" echo %Tabs%%Condition% {
-exit /B 0

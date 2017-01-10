@@ -8,9 +8,9 @@ if not "%1" == "load" (
 	set CharX=15
 	set CharY=22
 	set ais=3
-	set ai1=_tW;,
-	set ai2=xtB9;_OXtK;lf2;.
-	set ai3=v%%1f1+;t{tC¬3;fC⌐2;s00;.
+	set ai1="_" "t" "W" ";" ","
+	set ai2="x" "t" "B" "9" ";" "_" "O" "X" "t" "K" ";" "l" "f" "2" ";" "."
+	set ai3="v %%1" "f" "1" "+" ";" "t" "{" "t" "C ¬" "3" ";" "f" "C ⌐" "2" ";" "s 0" ";" "."
 	set enemys=5
 	set enemy1=▐58,17,0,0,1
 	set enemy2=σ50,22,0,0,2
