@@ -105,8 +105,8 @@ exit /B
         call :newline "}" 1
     ) else if "%~1" == "O" (call :condition "" "or"
     ) else if "%~1" == "A" (call :condition "" "and"
-    ) else if "%~1" == "s" (call :newline "var = %~2"
-    ) else if "%~1" == "v" (call :condition "var ?? %~2"
+    ) else if "%~1" == "s" (call :newline "var = %Arg%"
+    ) else if "%~1" == "v" (call :condition "var ?? %Arg%"
     ) else if "%~1" == "+" (call :newline "var++"
     ) else if "%~1" == "-" (call :newline "var--"
     )
