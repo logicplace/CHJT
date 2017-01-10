@@ -47,6 +47,7 @@ U: Unhide self
 C: Change sprite to the following value
 @: Face left
 #: Face right
+I: Return AI to initial state
 
 c: If in visible area
 l: If space to left is solid
@@ -77,7 +78,6 @@ v: If the variable currently equals the following value (two bytes)
 ,: Quit and let char pass through
 
 ~NEXT~
-I: Return AI to initial state
 w: Cause player to move left
 e: Cause player to move right
 n: Cause player to move up

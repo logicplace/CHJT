@@ -308,6 +308,7 @@ exit /B
 		set /A TmpI=%%i + 1
 		for /L %%j in (!TmpI!,1,!enemys!) do (
 			set /A TmpIdx=%%j - 1
+			set enemy!TmpIdx!=!enemy%%j!
 			set enemy!TmpIdx!_avatar=!enemy%%j_avatar!
 			set enemy!TmpIdx!_x=!enemy%%j_x!
 			set enemy!TmpIdx!_y=!enemy%%j_y!
@@ -585,17 +586,18 @@ exit /B
 				) else set /A enemy%1_var-=1
 			) else if "!com!" == "." (
 				:: Quit processing thoughts ::
-				rem pause
 				exit /B
 			) else if "!com!" == "," (
 				:: Quit processing thoughts and let char pass through ::
-				rem pause
 				call :bool "!CheckX!,!CheckY!" -- "!enemy%1_x!,!enemy%1_y!"
 				if "!ErrorLevel!" == "1" (
 					set CharX=!CheckX!
 					set CharY=!CheckY!
 				)
 				exit /B
+			) else if "!com!" == "I" (
+				:: Reset the AI to its initial state ::
+				call :parseAI enemy%1
 			)
 			
 			if not "!Bool!" == "" (
@@ -625,6 +627,7 @@ exit /B
 	(echo set WantHorz=%WantHorz%)>>save.bat
 	(echo set enemys=%enemys%)>>save.bat
 	for /L %%i in (1,1,%enemys%) do (
+		(echo set enemy%%i=!enemy%%i!)>>save.bat
 		(echo set enemy%%i_avatar=!enemy%%i_avatar!)>>save.bat
 		(echo set enemy%%i_x=!enemy%%i_x!)>>save.bat
 		(echo set enemy%%i_y=!enemy%%i_y!)>>save.bat
@@ -686,24 +689,24 @@ exit /B
 	)
 
 	:: Parse enemies
-	if "%2" == "" (
-		for /L %%i in (1,1,!enemys!) do (
-			set enemy%%i_avatar=!enemy%%i:~0,1!
-			for /F "tokens=1,2,3,4,5,6,7,8,9 delims=, eol=" %%A in ("!enemy%%i:~1!") do (
-				set enemy%%i_x=%%A
-				set enemy%%i_y=%%B
-				set enemy%%i_state=%%C
-				set enemy%%i_var=%%D
-				set AI=!ai%%E!
-				if "%%F" == "" set AI=!AI:$1=%%F!
-				if "%%G" == "" set AI=!AI:$2=%%G!
-				if "%%H" == "" set AI=!AI:$3=%%H!
-				if "%%I" == "" set AI=!AI:$4=%%I!
-				set enemy%%i_ai=!AI!
-			)
-		)
-	)
+	if "%2" == "" for /L %%i in (1,1,!enemys!) do call :parseAI enemy%%i
 exit /B 1
+
+:parseAI
+	set %1_avatar=!%1:~0,1!
+	for /F "tokens=1,2,3,4,5,6,7,8,9 delims=, eol=" %%A in ("!%1:~1!") do (
+		set %1_x=%%A
+		set %1_y=%%B
+		set %1_state=%%C
+		set %1_var=%%D
+		set AI=!ai%%E!
+		if "%%F" == "" set AI=!AI:$1=%%F!
+		if "%%G" == "" set AI=!AI:$2=%%G!
+		if "%%H" == "" set AI=!AI:$3=%%H!
+		if "%%I" == "" set AI=!AI:$4=%%I!
+		set %1_ai=!AI!
+	)
+exit /B
 
 ::::::::: Convenience functions :::::::::
 :bool
