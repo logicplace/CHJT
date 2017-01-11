@@ -18,6 +18,9 @@ s = State (see below)
 v = Variable
 t... = Thoughts.
 
+Taken: 0123456789 ABCD F HI KL O R U WX abcd fgh l rstuv x _{};.,
+Untaken: E G J MN PQ ST V YZ e ijk mnopq w yz
+
 AI States desc:
 0: Facing left
 1: Facing right
@@ -48,6 +51,8 @@ C: Change sprite to the following value
 @: Face left
 #: Face right
 I: Return AI to initial state
+a: Change the current AI to ## and pass enemy parameters
+b: Change the current AI to ## and pass the var as $1
 
 c: If in visible area
 l: If space to left is solid
@@ -83,8 +88,6 @@ e: Cause player to move right
 n: Cause player to move up
 b: Cause player to move down
 i: Create new AI ##
-a: Change the current AI to ##
 Weapons
 Items and menu
 Art (Title, gameovers, win?)
-Level Editor

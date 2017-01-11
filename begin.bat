@@ -598,6 +598,19 @@ exit /B
 			) else if "!com!" == "I" (
 				:: Reset the AI to its initial state ::
 				call :parseAI enemy%1
+			) else if "!com!" == "a" (
+				:: Change AI to new one ::
+				set ai=!ai%%H!
+				for /F "tokens=6,7,8,9" %%A in (!enemy%1:~1!) do (
+					set ai=!ai:$1=%%A!
+					set ai=!ai:$2=%%B!
+					set ai=!ai:$3=%%C!
+					set ai=!ai:$4=%%D!
+				)
+				
+				set enemy%1_ai=!ai!
+			) else if "!com!" == "b" (
+				call :setp enemy%1_ai "ai%%H:$1=!enemy%1_var!"
 			)
 			
 			if not "!Bool!" == "" (
@@ -613,6 +626,11 @@ exit /B
 			)
 		)
 	)
+exit /B
+
+:setp
+::setp Dest Source
+	set %~1=!%~2!
 exit /B
 
 :save
