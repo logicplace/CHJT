@@ -11,7 +11,7 @@ set NoArg=0123456789DBFKWHU@#IclrdughLRxX_{}tf;OA+-.,
 ::   Type: Arg = String, Num = Number                                          ::
 ::   Args: Sequences of numbers, each digit is the amount of bytes that arg is ::
 set Arg1=C
-set Num2=sv
+set Num2=svab
 :parseAI_loop
     set TmpCommand=!TmpAI:~%TmpStart%,1!
     if "%TmpCommand%" == "" goto parseAI_endLoop

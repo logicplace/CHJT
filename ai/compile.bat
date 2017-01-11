@@ -62,6 +62,7 @@ if "%Input:~0,7%" == "visible" (call :cond 7 c
 ) else if "%Input:~0,4%" == "last" (call :cond 4 ""
 ) else if "%Input:~0,4%" == "hero" (call :comp 4 "above=x" "below=X" "side=_"
 ) else if "%Input:~0,3%" == "var" (call :compArg 3 v Num2
+) else if "%Input:~0,3%" == "var" (call :compArg 3 v Num2
 ) else (
     call :crunchWord
     echo Unknown condional "%Word%" >&2
@@ -121,6 +122,8 @@ if "%Word%" == "noop" (set Command=0
     call :append 1 ""
 ) else if "%Word%" == "face" (call :argument "left=@" "right=#"
 ) else if "%Word%" == "reset" (call :argument "=I"
+) else if "%Word%" == "reprogram" (call :argWord a Num2
+) else if "%Word%" == "reprogramwithvar" (call :argWord b Num2
 ) else if "%Word%" == "stop" (call :argument "=." "pass=,"
 ) else if "%Word%" == "var++" (set Command=+
 ) else if "%Word%" == "var--" (set Command=-
@@ -241,13 +244,18 @@ exit /B 0
     echo No subscript for %Parent% called %Word%. >&2
 exit /B 1
 
-:argument
+:argCommon
     set Parent=%Word%
     call :crunchWord
     if not "!ValidCommand: %Word% =!" == "%ValidCommand%" (
         set Input=%Word% !Input!
         set Word=
     )
+exit /B
+
+:argument
+    call :argCommon
+
     for %%i in (%*) do for /F "tokens=1,2 delims==" %%j in (%%i) do (
         if "%Word%%%k" == "" (
             set Command=%%j
@@ -261,12 +269,23 @@ exit /B 1
     echo No argument "%Word%" for %Parent%. >&2
 exit /B 1
 
+:argWord
+    call :argCommon
+
+    if "%Word%" == "" (
+        echo %Parent% requires an argument. >&2
+        exit /B
+    )
+    if not "%Word:~0,1%" == "$" call :%~2 Word "%Word%"
+    set Command=%~1%Word%
+exit /B
+
 :crunchSpace
     for /F "tokens=* eol=" %%i in ("%Input%") do set Input=%%i
 exit /B
 
 :crunchWord
-    for /F "tokens=1* eol= delims=() " %%i in ("x%Input%") do (
+    for /F "tokens=1* eol= delims=(,) " %%i in ("x%Input%") do (
         set Word=%%i
         set Input=%%j
     )
