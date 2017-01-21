@@ -77,7 +77,7 @@ if "%Avatar%" == "3" set Avatar=¡
 if "%Avatar%" == "4" set Avatar=⌂
 :: List level packs ::
 cls
-set PackChoices=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
+set PackChoices=1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 :::: 4321zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz1234|
 echo ╔═══════════════════════════╣ Select a level pack ╠═══════════════════════════╗
 echo ║                                                                             ║
@@ -750,10 +750,10 @@ exit /B 1
 		set %1_state=%%C
 		set %1_var=%%D
 		set AI=!ai%%E!
-		if "%%F" == "" set AI=!AI:$1=%%F!
-		if "%%G" == "" set AI=!AI:$2=%%G!
-		if "%%H" == "" set AI=!AI:$3=%%H!
-		if "%%I" == "" set AI=!AI:$4=%%I!
+		if not "%%F" == "" set AI=!AI:$1=%%F!
+		if not "%%G" == "" set AI=!AI:$2=%%G!
+		if not "%%H" == "" set AI=!AI:$3=%%H!
+		if not "%%I" == "" set AI=!AI:$4=%%I!
 		set %1_ai=!AI!
 	)
 exit /B
