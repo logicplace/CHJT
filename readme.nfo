@@ -33,6 +33,11 @@ yeah, it does make me feel cool that I did it.
 ³2³
 ÀÄÁ¿ CHANGES ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
    ÀÄÄÄÄÄÄÄÄÄÙ
+0.2 Functionality update
+     * Added level and AI editors
+     * New AI thoughts: I, a, b
+     * Level packs system
+     * Level format changed: AIs are now separate from enemies and are presplit.
 0.1 Initial release
      * Map display and scrolling
      * Character movement, jumping, and falling
