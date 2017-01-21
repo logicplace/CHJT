@@ -14,7 +14,7 @@ if not "%1" == "load" (
 	set enemys=5
 	set enemy1=▐58,17,0,0,1
 	set enemy2=σ50,22,0,0,2
-	set enemy3=⌐59,7,0,0,3,08
+	set enemy3=⌐59,7,0,0,3,8
 	set enemy4=⌐30,2,0,3,3,14
 	set enemy5=¬8,10,1,1,3,10
 )
