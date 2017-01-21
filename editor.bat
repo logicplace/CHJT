@@ -810,6 +810,7 @@ goto editLevel
         echo.   explode() - Kill the AI by making it explode. Changes sprite to ☼
         echo.   squish()  - Kill the AI by making it squish. Changes sprite to ▬
         echo.   die()     - Kill the AI outright.
+        echo.   reset()   - Reset the AI to its initial position, state, and var.
         echo.
         echo.   hide()   - Hide the AI so the sprite is not drawn. hide(true) is an alias.
         echo.   unhide() - Unhide the AI if it was hidden. hide(false) is an alias.
@@ -817,6 +818,9 @@ goto editLevel
         echo.   stop()     - Stop processing the AI.
         echo.   stop(pass) - Stop processing the AI, but if the hero collided with it, let
         echo.                the hero occupy the same space as the AI.
+        echo.
+        echo.   reprogram(#) - Change current instance's AI to #, passing instance params.
+        echo.   reprogramWithVar(#) - Changes AI but passes the current var as $1 instead.
         pause
         echo.  Conditionals
         echo.   visible - Whether or not the AI is currently visible. Control with un/hide
