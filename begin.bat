@@ -12,6 +12,7 @@ set title=CRAZY HAPPY JOY TIME
 :::: Declare defaults ::::
 set Keys=nwasdqop
 :: Level stuff ::
+set LevelPack=
 set PrevLevels=
 set CurrentLevel=
 set ScreenLeft=0
@@ -74,15 +75,43 @@ if "%Avatar%" == "1" set Avatar=☺
 if "%Avatar%" == "2" set Avatar=☻
 if "%Avatar%" == "3" set Avatar=¡
 if "%Avatar%" == "4" set Avatar=⌂
-:: Now we load level 0 ::
-call :loadLevel level0
-goto start
+:: List level packs ::
+cls
+set PackChoices=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
+:::: 4321zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz1234|
+echo ╔═══════════════════════════╣ Select a level pack ╠═══════════════════════════╗
+echo ║                                                                             ║
+set idx=0
+for /F "tokens=*" %%p in ('dir packs /A:D /B') do (
+	call :setp Choice "PackChoices:~!idx!,1"
+	if "!Choice!" == "" goto stopListingPacks
+	set Pack=%%p
+	set /A idx+=1
+	set Pack!idx!=%%p
+	set eline=║  !Choice!. !Pack:~0,70!                                                                      
+	echo !eline:~0,76!  ║
+)
+:stopListingPacks
+echo ║                                                                             ║
+echo ╚═════════════════════════════════════════════════════════════════════════════╝
+choice /C !PackChoices:~0,%idx%! /N /CS /M ? 
+if ErrorLevel 1 (
+	set LevelPack=packs\!Pack%ErrorLevel%!
+	:: Now we load the first level of the selected pack ::
+	for %%l in (!LevelPack!\*) do (
+		echo %%l
+		call :loadLevel "%%l"
+		goto start
+	)
+) else (
+	goto title
+)
 
 :continueGame
 cls
 if exist "save.bat" (
 	call "save.bat"
-	call :loadLevel !CurrentLevel! load
+	call :loadLevel "!LevelPack!\!CurrentLevel!" load
 	goto mainLoop
 ) else (
 	echo Save file does not exist.
@@ -118,10 +147,10 @@ goto mainLoop
 
 	call :step
 	:: Reload if player has died ::
-	if "%KillPlayer%" == "1" call :loadLevel "%CurrentLevel%"
+	if "%KillPlayer%" == "1" call :loadLevel "%LevelPack%\%CurrentLevel%"
 	if "%WinLevel%" == "1" (
 		set PrevLevels=%PrevLevels% "%CurrentLevel%"
-		call :loadLevel "%NextLevel%"
+		call :loadLevel "%LevelPack%\%NextLevel%"
 		if "!ErrorLevel!" == "0" goto winGame
 	)
 goto mainLoop
@@ -139,7 +168,7 @@ goto mainLoop
 	call :slowFlood "" %time%
 	call :slowFlood " Level name                            Designers"
 	for %%i in (%PrevLevels%) do (
-		call :loadLevel %%i win
+		call :loadLevel "%LevelPack%\%%i" win
 		(set LevelName=!LevelName!                                     )
 		(set Authors=!Authors!                                        )
 		call :slowFlood " !LevelName:~0,37! !Authors:~0,40!" %time%
@@ -634,6 +663,7 @@ exit /B
 exit /B
 
 :save
+	(echo set LevelPack=%LevelPack%)>>save.bat
 	(echo set PrevLevels=%PrevLevels%)>save.bat
 	(echo set CurrentLevel=%CurrentLevel%)>>save.bat
 	(echo set ScreenLeft=%ScreenLeft%)>>save.bat
@@ -659,7 +689,9 @@ exit /B
 :: loadLevel name [mode]
 :: Mode is just to change minor functionalities based on what's using this function
 :: Returns 0 if level does not exist and 1 otherwise
-	if not exist "%~1.bat" exit /B 0
+	set TmpLevel=%~1
+	set TmpLevel=%TmpLevel:.bat=%.bat
+	if not exist "%TmpLevel%" exit /B 0
 	:: Set defaults ::
 	set color=07
 	:: Level stuff ::
@@ -675,7 +707,7 @@ exit /B
 		set WantHorz=0
 	)
 
-	call "%~1.bat" %2
+	call "%TmpLevel%" %2
 	if not "%2" == "win" (
 		if not "%LevelName%" == "" (
 			title %title% - %LevelName%
