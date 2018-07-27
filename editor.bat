@@ -401,12 +401,17 @@ goto editLevel
     :: p = type text command
     :editLevelCase16
         set /P Command=:
-        for /F "tokens=1,2,3,4" %%G in ("%Command%") do (
-            set cmd=%%G
-            set arg1=%%~H
-            set arg2=%%~I
-            set arg3=%%~J
-        )
+        call :setArgs %Command%
+        goto postSetArgs
+
+        :setArgs
+            set cmd=%1
+            set arg1=%~2
+            set arg2=%~3
+            set arg3=%~4
+        exit /B
+        :postSetArgs
+
         call :upper cmd
         if "%cmd:HELP=H%" == "H" goto editLevelCase6
         if "%cmd:QUIT=Q%" == "Q" goto comfirmQuit
