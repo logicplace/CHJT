@@ -594,13 +594,13 @@ goto editLevel
             if %AITabStart% LSS !Tmp! set /A AITabStart+=1
         ) else if "%pane%" == "Enemy" (
             set /A EnemyTabStop=EnemyTabStart + 19
-            if %enemys% LSS %EnemyTabStop% (set Test=%enemys%
-            ) else set Test=%EnemyTabStop%
+            if %enemys% LSS !EnemyTabStop! (set Test=%enemys%
+            ) else set Test=!EnemyTabStop!
 
-            if %EnemyCursor% LSS %Test% (
+            if %EnemyCursor% LSS !Test! (
                 set /A EnemyCursor+=1
                 call :jumpToEnemy
-            ) else if not %EnemyTabStop% EQU %enemys% (
+            ) else if not !EnemyTabStop! EQU %enemys% (
                 set /A EnemyTabStart+=1
                 call :jumpToEnemy
             )
