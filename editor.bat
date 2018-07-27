@@ -1544,7 +1544,7 @@ exit /B
 :batname
 ::batname Variable Filename
     set Tmp=%~2
-    set %1="%Tmp:.bat=%.bat"
+    (set %1="%Tmp:.bat=%.bat")&& REM % Sublime highlighter fix
 exit /B
 
 :save
