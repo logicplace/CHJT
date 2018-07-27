@@ -1,4 +1,4 @@
-@BOM 2>nul
+﻿@BOM 2>nul
 @echo off
 :: CRAZY HAPPY JOY TIME ::
 :: Platform game in BATCH by Sapphire Becker (logicplace.com) ::
@@ -48,6 +48,7 @@ echo ║                                                        2^) Continue    
 ) else (
 echo ║                                                                             ║
 )
+
 echo ║                                                                             ║
 echo ║                                                        3) Level Editor      ║
 echo ║                                                                             ║
@@ -92,6 +93,7 @@ for /F "tokens=*" %%p in ('dir packs /A:D /B') do (
 	echo !eline:~0,76!  ║
 )
 :stopListingPacks
+
 echo ║                                                                             ║
 echo ╚═════════════════════════════════════════════════════════════════════════════╝
 choice /C !PackChoices:~0,%idx%! /N /CS /M ? 
